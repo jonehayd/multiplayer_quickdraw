@@ -1,3 +1,9 @@
+# Dataset
+data
+
+# Python stuff
+.venv
+
 # Logs
 logs
 *.log
