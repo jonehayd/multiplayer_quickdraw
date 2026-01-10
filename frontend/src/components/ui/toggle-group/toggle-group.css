@@ -1,0 +1,30 @@
+.toggle-group {
+  display: flex;
+  background: var(--bg-panel-light);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.toggle-group-btn {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.toggle-group-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.toggle-group-btn.active {
+  background: var(--accent);
+  color: #000;
+  font-weight: 600;
+}
