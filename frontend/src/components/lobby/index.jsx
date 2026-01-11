@@ -3,22 +3,30 @@ import { FaArrowLeft, FaCrown, FaCopy, FaCheck } from "react-icons/fa";
 import { useState } from "react";
 import "./styles.css";
 
-const MAX_PLAYERS = 6;
+const MAX_PLAYERS = 4;
 
-export default function Lobby() {
+export default function Lobby({ lobbyInfo, onStartGame, onLeave }) {
   const [copied, setCopied] = useState(false);
 
-  // Mock lobby state (replace later with server data)
-  const inviteCode = "A7F9Q2";
-
-  const players = [
-    { id: 1, name: "Hayden", isHost: true },
-    { id: 2, name: "Alex", isHost: false },
-    { id: 3, name: "Sam", isHost: false },
-    { id: 4, name: "Jess", isHost: false },
-  ];
-
+  if (!lobbyInfo) return null;
+  const { userId, lobby } = lobbyInfo;
+  const { inviteCode, players } = lobby;
   const canStart = players.length >= 2;
+
+  const isHost = players.some((p) => p.id === userId && p.isHost);
+
+  let statusText;
+  let startButtonTitle;
+  if (!canStart) {
+    statusText = "Waiting for players to join...";
+    startButtonTitle = "Need atleast 2 players to start";
+  } else if (isHost) {
+    statusText = "Press start game to begin!";
+    startButtonTitle = "Start";
+  } else {
+    statusText = "Waiting for the host to start!";
+    startButtonTitle = "Only host can start";
+  }
 
   function handleCopyInviteCode() {
     navigator.clipboard.writeText(inviteCode);
@@ -26,15 +34,10 @@ export default function Lobby() {
     setTimeout(() => setCopied(false), 1500);
   }
 
-  function startGame() {
-    if (!canStart) return;
-    console.log("Starting game...");
-  }
-
   return (
     <div className="lobby-page">
       {/* Exit lobby */}
-      <button className="exit-lobby-btn">
+      <button onClick={onLeave} className="exit-lobby-btn">
         <FaArrowLeft />
         Exit Lobby
       </button>
@@ -47,13 +50,12 @@ export default function Lobby() {
             <MdPeopleAlt />
           </div>
           <h1>Waiting Room</h1>
-          <p>Waiting for players to join…</p>
+          <p>{statusText}</p>
         </div>
 
         {/* Invite code */}
         <div className="invite-code-container">
           <span className="label">Invite Code</span>
-
           <div className="invite-code-box">
             <code>{inviteCode}</code>
             <button onClick={handleCopyInviteCode}>
@@ -91,9 +93,10 @@ export default function Lobby() {
 
         {/* Start game */}
         <button
-          className={`start-game-btn ${canStart ? "active" : ""}`}
-          disabled={!canStart}
-          onClick={startGame}
+          title={startButtonTitle}
+          className={`start-game-btn ${canStart && isHost ? "active" : ""}`}
+          disabled={!canStart || !isHost}
+          onClick={onStartGame}
         >
           Start Game
         </button>

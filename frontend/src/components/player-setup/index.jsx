@@ -3,12 +3,35 @@ import "./styles.css";
 import { FaPencil } from "react-icons/fa6";
 import ToggleGroup from "../ui/toggle-group";
 
-export default function PlayerSetup({ onComplete }) {
+export default function PlayerSetup({ handleAction }) {
   const [displayName, setDisplayName] = useState("");
   const [lobbyType, setLobbyType] = useState("public");
   const [inviteCode, setInviteCode] = useState("");
 
   const isNameValid = displayName.trim().length > 0;
+
+  function onCreateLobby() {
+    handleAction({
+      actionType: "create",
+      displayName,
+      lobbyType,
+    });
+  }
+
+  function onJoinWithCode() {
+    handleAction({
+      actionType: "joinCode",
+      displayName,
+      inviteCode,
+    });
+  }
+
+  function onJoinRandom() {
+    handleAction({
+      actionType: "joinRandom",
+      displayName,
+    });
+  }
 
   return (
     <div className="container">
@@ -53,6 +76,7 @@ export default function PlayerSetup({ onComplete }) {
           <button
             className="create-lobby-btn"
             disabled={!isNameValid}
+            onClick={onCreateLobby}
             type="button"
           >
             Make Lobby
@@ -74,6 +98,7 @@ export default function PlayerSetup({ onComplete }) {
           <button
             className="create-lobby-btn"
             disabled={!isNameValid || !inviteCode.trim()}
+            onClick={onJoinWithCode}
             type="button"
           >
             Join with Code
@@ -84,6 +109,7 @@ export default function PlayerSetup({ onComplete }) {
           <button
             className="create-lobby-btn"
             disabled={!isNameValid}
+            onClick={onJoinRandom}
             type="button"
           >
             Join Random Lobby

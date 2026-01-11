@@ -21,4 +21,9 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["onnxruntime-web"],
   },
+  server: {
+    proxy: {
+      "/api": "http://localhost:3000",
+    },
+  },
 });

@@ -1,0 +1,26 @@
+{
+  "name": "quickdraw_game",
+  "version": "1.0.0",
+  "description": "Multiplayer Drawing Game – System Design\r Overview",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "node backend/src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonehayd/multiplayer_quickdraw.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jonehayd/multiplayer_quickdraw/issues"
+  },
+  "homepage": "https://github.com/jonehayd/multiplayer_quickdraw#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
