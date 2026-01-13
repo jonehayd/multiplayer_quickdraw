@@ -1,8 +1,11 @@
 import { lobbies, inviteCodeMap } from "../state.js";
+import { GameState } from "../../../shared/gameState.js";
 import { createLobbyId, createUserId, createInviteCode } from "../utils/ids.js";
 import express from "express";
 
-function serializeLobby(lobby) {
+// Helper functions
+
+export function serializeLobby(lobby) {
   return {
     id: lobby.id,
     inviteCode: lobby.inviteCode,
@@ -12,23 +15,12 @@ function serializeLobby(lobby) {
       name: p.name,
       isHost: p.isHost,
     })),
+    state: lobby.state,
     createdAt: lobby.createdAt,
   };
 }
 
-export function broadcastLobbyUpdate(lobby) {
-  const payload = {
-    type: "LOBBY_UPDATE",
-    lobby: serializeLobby(lobby),
-  };
-
-  for (const player of lobby.players.values()) {
-    if (player.ws?.readyState === 1) {
-      // 1 = OPEN
-      player.ws.send(JSON.stringify(payload));
-    }
-  }
-}
+// Lobby creation
 
 export function createLobby(req, res) {
   const { displayName, isPublic } = req.body;
@@ -56,6 +48,7 @@ export function createLobby(req, res) {
     players: new Map([
       [userId, { id: userId, name: displayName, ws: null, isHost: true }],
     ]),
+    state: GameState.LOBBY,
     createdAt: Date.now(),
   };
 
@@ -67,6 +60,8 @@ export function createLobby(req, res) {
     userId,
   });
 }
+
+// Joining a lobby
 
 export function joinLobby(req, res) {
   const { inviteCode, displayName } = req.body;
