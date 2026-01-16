@@ -1,3 +1,4 @@
+// index.js
 import {
   handleJoinLobby,
   handleStartGame,
@@ -10,7 +11,7 @@ import {
 const handlers = {
   JOIN_LOBBY_SOCKET: handleJoinLobby,
   START_GAME: handleStartGame,
-  CANVAS_STROKE_COMPLETE: handleCanvasStroke,
+  CANVAS_STROKE_UPDATE: handleCanvasStroke,
   CANVAS_UNDO: handleCanvasUndo,
   CANVAS_CLEAR: handleCanvasClear,
 };

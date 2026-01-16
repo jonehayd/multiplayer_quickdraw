@@ -9,6 +9,7 @@ const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 500;
 const BRUSH_SIZE = 15;
 const ERASER_SIZE = 15;
+const STROKE_UPDATE_INTERVAL = 50; // Send updates every 50ms while drawing
 
 export default function MainPlayerCanvas() {
   const { send, lobbyInfo } = useLobbyContext();
@@ -17,6 +18,7 @@ export default function MainPlayerCanvas() {
   const strokesRef = useRef([]); // all committed strokes
   const currentStrokeRef = useRef(null);
   const previewCanvasRef = useRef(null);
+  const lastUpdateTimeRef = useRef(0);
 
   const [tool, setTool] = useState("pen"); // "pen" | "eraser"
   const [isDrawing, setIsDrawing] = useState(false);
@@ -96,6 +98,16 @@ export default function MainPlayerCanvas() {
     ctx.moveTo(x, y);
 
     setIsDrawing(true);
+    lastUpdateTimeRef.current = Date.now();
+
+    // Send initial stroke start
+    send({
+      type: "CANVAS_STROKE_UPDATE",
+      lobbyId: lobbyInfo.lobby.id,
+      playerId: lobbyInfo.userId,
+      stroke: stroke,
+      isComplete: false,
+    });
   }
 
   function draw(e) {
@@ -110,6 +122,20 @@ export default function MainPlayerCanvas() {
     stroke.points.push({ x, y });
     ctx.lineTo(x, y);
     ctx.stroke();
+
+    // Throttled updates - only send every STROKE_UPDATE_INTERVAL ms
+    const now = Date.now();
+    if (now - lastUpdateTimeRef.current >= STROKE_UPDATE_INTERVAL) {
+      lastUpdateTimeRef.current = now;
+
+      send({
+        type: "CANVAS_STROKE_UPDATE",
+        lobbyId: lobbyInfo.lobby.id,
+        playerId: lobbyInfo.userId,
+        stroke: { ...stroke }, // Send a copy
+        isComplete: false,
+      });
+    }
   }
 
   function stopDrawing() {
@@ -120,12 +146,13 @@ export default function MainPlayerCanvas() {
     // Add completed stroke to history
     strokesRef.current.push(currentStrokeRef.current);
 
-    // Send COMPLETE stroke to server
+    // Send FINAL stroke to server
     send({
-      type: "CANVAS_STROKE_COMPLETE",
+      type: "CANVAS_STROKE_UPDATE",
       lobbyId: lobbyInfo.lobby.id,
       playerId: lobbyInfo.userId,
       stroke: currentStrokeRef.current,
+      isComplete: true, // Mark as complete
     });
 
     currentStrokeRef.current = null;

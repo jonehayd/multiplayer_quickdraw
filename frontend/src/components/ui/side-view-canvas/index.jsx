@@ -5,7 +5,8 @@ const MAIN_CANVAS_WIDTH = 800;
 const MAIN_CANVAS_HEIGHT = 500;
 
 export default function SideViewCanvas() {
-  const { lobbyInfo, drawingsByPlayer } = useLobbyContext();
+  const { lobbyInfo, drawingsByPlayer, inProgressStrokesRef } =
+    useLobbyContext();
   const canvasRefs = useRef({});
 
   const userId = lobbyInfo?.userId;
@@ -26,7 +27,9 @@ export default function SideViewCanvas() {
       const ctx = canvas.getContext("2d");
       ctx.lineCap = "round";
 
-      const strokes = drawingsByPlayer[player.id] || [];
+      // Get completed strokes and in-progress stroke
+      const completedStrokes = drawingsByPlayer[player.id] || [];
+      const inProgressStroke = inProgressStrokesRef?.current?.[player.id];
 
       // Fill background white
       ctx.fillStyle = "white";
@@ -36,7 +39,12 @@ export default function SideViewCanvas() {
       const scaleX = canvas.width / MAIN_CANVAS_WIDTH;
       const scaleY = canvas.height / MAIN_CANVAS_HEIGHT;
 
-      strokes.forEach((stroke) => {
+      // Draw all strokes
+      const allStrokes = inProgressStroke
+        ? [...completedStrokes, inProgressStroke]
+        : completedStrokes;
+
+      allStrokes.forEach((stroke) => {
         const points = stroke.points;
         if (!points || points.length === 0) return;
 
@@ -48,7 +56,7 @@ export default function SideViewCanvas() {
 
           ctx.beginPath();
           ctx.fillStyle = stroke.color;
-          ctx.arc(x, y, stroke.size / 2, 0, Math.PI * 2);
+          ctx.arc(x, y, (stroke.size * scaleX) / 2, 0, Math.PI * 2);
           ctx.fill();
           ctx.closePath();
         } else {
@@ -69,7 +77,7 @@ export default function SideViewCanvas() {
         }
       });
     });
-  }, [drawingsByPlayer, otherPlayers]);
+  }, [drawingsByPlayer, otherPlayers, inProgressStrokesRef]);
 
   if (!lobbyInfo) return null;
 

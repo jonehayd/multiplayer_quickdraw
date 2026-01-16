@@ -1,3 +1,4 @@
+// handlers.js
 import { inviteCodeMap, lobbies } from "../state.js";
 import { GameState } from "../../../shared/gameState.js";
 import { serializeLobby } from "../routes/lobby.js";
@@ -63,11 +64,73 @@ export function handleStartGame({ context }) {
   broadcastLobbyUpdate(lobby);
 }
 
-export function handleCanvasStroke({ msg, context }) {}
+export function handleCanvasStroke({ msg, context }) {
+  const { currentLobbyId, currentUserId } = context;
+  if (!currentLobbyId || !currentUserId) return;
 
-export function handleCanvasUndo({ msg, context }) {}
+  const lobby = lobbies.get(currentLobbyId);
+  if (!lobby) return;
 
-export function handleCanvasClear({ msg, context }) {}
+  const { playerId, stroke, isComplete } = msg;
+
+  // Broadcast stroke update to all other players
+  lobby.players.forEach((player) => {
+    if (player.id !== playerId && player.ws?.readyState === 1) {
+      player.ws.send(
+        JSON.stringify({
+          type: "CANVAS_STROKE_UPDATE",
+          playerId,
+          stroke,
+          isComplete,
+        })
+      );
+    }
+  });
+}
+
+export function handleCanvasUndo({ msg, context }) {
+  const { currentLobbyId, currentUserId } = context;
+  if (!currentLobbyId || !currentUserId) return;
+
+  const lobby = lobbies.get(currentLobbyId);
+  if (!lobby) return;
+
+  const { playerId } = msg;
+
+  // Broadcast undo to all other players
+  lobby.players.forEach((player) => {
+    if (player.id !== playerId && player.ws?.readyState === 1) {
+      player.ws.send(
+        JSON.stringify({
+          type: "CANVAS_UNDO",
+          playerId,
+        })
+      );
+    }
+  });
+}
+
+export function handleCanvasClear({ msg, context }) {
+  const { currentLobbyId, currentUserId } = context;
+  if (!currentLobbyId || !currentUserId) return;
+
+  const lobby = lobbies.get(currentLobbyId);
+  if (!lobby) return;
+
+  const { playerId } = msg;
+
+  // Broadcast clear to all other players
+  lobby.players.forEach((player) => {
+    if (player.id !== playerId && player.ws?.readyState === 1) {
+      player.ws.send(
+        JSON.stringify({
+          type: "CANVAS_CLEAR",
+          playerId,
+        })
+      );
+    }
+  });
+}
 
 // Helper functions
 
@@ -83,5 +146,3 @@ function broadcastLobbyUpdate(lobby) {
     }
   });
 }
-
-function broadcastCanvasUpdate(lobby, playerId) {}

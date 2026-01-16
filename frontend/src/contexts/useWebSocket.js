@@ -2,18 +2,26 @@ import { useEffect, useRef } from "react";
 
 export function useSocket({ wsRef, lobbyState, canvasState }) {
   const { lobbyInfo, updateLobby } = lobbyState;
-  const { applyCanvasUpdate, clearCanvas } = canvasState;
-  const isConnecting = useRef(false);
+  const { applyCanvasUpdate, applyCanvasUndo, clearCanvas } = canvasState;
+
+  // Store callbacks in refs so they don't trigger reconnections
+  const updateLobbyRef = useRef(updateLobby);
+  const applyCanvasUpdateRef = useRef(applyCanvasUpdate);
+  const applyCanvasUndoRef = useRef(applyCanvasUndo);
+  const clearCanvasRef = useRef(clearCanvas);
+
+  // Keep refs updated
+  useEffect(() => {
+    updateLobbyRef.current = updateLobby;
+    applyCanvasUpdateRef.current = applyCanvasUpdate;
+    applyCanvasUndoRef.current = applyCanvasUndo;
+    clearCanvasRef.current = clearCanvas;
+  });
 
   useEffect(() => {
     if (!lobbyInfo) return;
-    if (isConnecting.current) return; // Prevent double connection
 
-    isConnecting.current = true;
-
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      return; // Already connected
-    }
+    console.log("Setting up WebSocket for lobby:", lobbyInfo.lobby.id);
 
     const ws = new WebSocket("ws://localhost:3000");
     wsRef.current = ws;
@@ -34,24 +42,41 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
 
       switch (msg.type) {
         case "LOBBY_UPDATE":
-          updateLobby(msg.lobby);
+          updateLobbyRef.current(msg.lobby);
           break;
-        case "CANVAS_UPDATE":
-          applyCanvasUpdate(msg.playerId, msg.strokes);
+
+        case "CANVAS_STROKE_UPDATE":
+          // Handle both in progress and completed strokes
+          applyCanvasUpdateRef.current(
+            msg.playerId,
+            msg.stroke,
+            msg.isComplete
+          );
           break;
-        case "CLEAR_CANVAS":
-          clearCanvas(msg.lobby);
+
+        case "CANVAS_UNDO":
+          // Handle undo from other players
+          applyCanvasUndoRef.current(msg.playerId);
+          break;
+
+        case "CANVAS_CLEAR":
+          // Handle clear from other players
+          clearCanvasRef.current(msg.playerId);
           break;
       }
     };
 
     ws.onclose = () => {
-      console.log("Websocket closed");
+      console.log("WebSocket closed");
       wsRef.current = null;
-      isConnecting.current = false;
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
     };
 
     return () => {
+      console.log("Cleaning up WebSocket");
       ws.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
