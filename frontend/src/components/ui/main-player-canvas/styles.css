@@ -19,6 +19,7 @@
   margin-top: 1rem;
   background-color: white;
   position: relative;
+  aspect-ratio: 16 / 10;
 }
 
 canvas {

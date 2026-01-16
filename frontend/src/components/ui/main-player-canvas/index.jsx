@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLobbyContext } from "../../../contexts/LobbyContext";
 import "./styles.css";
 import { FaEraser } from "react-icons/fa";
 import { LuUndo2 } from "react-icons/lu";
@@ -7,90 +8,142 @@ import { MdDeleteForever } from "react-icons/md";
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 500;
 const BRUSH_SIZE = 15;
-const MAX_HISTORY = 10;
 const ERASER_SIZE = 15;
 
-export default function MainPlayerCanvas({ canvasRef: externalCanvasRef }) {
-  const internalRef = useRef(null);
-  const canvasRef = externalCanvasRef || internalRef;
+export default function MainPlayerCanvas() {
+  const { send, lobbyInfo } = useLobbyContext();
+  const canvasRef = useRef(null);
   const ctxRef = useRef(null);
-
-  const cPushArray = useRef([]); // Stroke history
-  const cStep = useRef(-1); // Index of last drawn stroke
+  const strokesRef = useRef([]); // all committed strokes
+  const currentStrokeRef = useRef(null);
   const previewCanvasRef = useRef(null);
 
   const [tool, setTool] = useState("pen"); // "pen" | "eraser"
   const [isDrawing, setIsDrawing] = useState(false);
   const [mousePos, setMousePos] = useState(null);
 
-  function cPush() {
-    const canvas = canvasRef.current;
-    const data = canvas.toDataURL();
+  function drawStroke(stroke) {
+    const ctx = ctxRef.current;
+    if (!ctx) return;
 
-    // Prevent duplicate pushes
-    if (cPushArray.current[cStep.current] === data) return;
+    ctx.beginPath();
+    ctx.strokeStyle = stroke.color;
+    ctx.lineWidth = stroke.size;
+    ctx.lineCap = "round";
 
-    cStep.current++;
-    cPushArray.current.length = cStep.current;
-    cPushArray.current.push(data);
+    stroke.points.forEach((p, i) => {
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    });
 
-    if (cPushArray.current.length > MAX_HISTORY) {
-      cPushArray.current.shift();
-      cStep.current--;
-    }
+    ctx.stroke();
+    ctx.closePath();
   }
 
-  function cUndo() {
-    if (cStep.current > 0) {
-      const canvas = canvasRef.current;
-      const ctx = ctxRef.current;
-      cStep.current--;
-      const canvasPic = new Image();
-      canvasPic.src = cPushArray.current[cStep.current];
-      canvasPic.onload = function () {
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(canvasPic, 0, 0);
-      };
-    }
+  function getMousePos(e) {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  }
+
+  function redrawFromStrokes() {
+    const canvas = canvasRef.current;
+    const ctx = ctxRef.current;
+    if (!canvas || !ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    strokesRef.current.forEach(drawStroke);
+  }
+
+  function undoStroke() {
+    if (strokesRef.current.length === 0) return;
+
+    strokesRef.current.pop();
+    redrawFromStrokes();
+
+    // Broadcast undo to other players
+    send({
+      type: "CANVAS_UNDO",
+      lobbyId: lobbyInfo.lobby.id,
+      playerId: lobbyInfo.userId,
+    });
   }
 
   function startDrawing(e) {
-    const { offsetX, offsetY } = e.nativeEvent;
-    setMousePos({ x: offsetX, y: offsetY });
-    ctxRef.current.beginPath();
-    ctxRef.current.moveTo(offsetX, offsetY);
+    const { x, y } = getMousePos(e);
+    setMousePos({ x, y });
+
+    const stroke = {
+      tool,
+      color: tool === "eraser" ? "white" : "black",
+      size: tool === "eraser" ? ERASER_SIZE : BRUSH_SIZE,
+      points: [{ x, y }],
+    };
+
+    currentStrokeRef.current = stroke;
+
+    const ctx = ctxRef.current;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+
     setIsDrawing(true);
   }
 
   function draw(e) {
-    const { offsetX, offsetY } = e.nativeEvent;
-    setMousePos({ x: offsetX, y: offsetY });
+    const { x, y } = getMousePos(e);
+    setMousePos({ x, y });
 
-    if (!isDrawing) return;
-    ctxRef.current.lineTo(offsetX, offsetY);
-    ctxRef.current.stroke();
+    if (!isDrawing || !currentStrokeRef.current) return;
+
+    const ctx = ctxRef.current;
+    const stroke = currentStrokeRef.current;
+
+    stroke.points.push({ x, y });
+    ctx.lineTo(x, y);
+    ctx.stroke();
   }
 
   function stopDrawing() {
+    if (!currentStrokeRef.current) return;
+
     ctxRef.current.closePath();
+
+    // Add completed stroke to history
+    strokesRef.current.push(currentStrokeRef.current);
+
+    // Send COMPLETE stroke to server
+    send({
+      type: "CANVAS_STROKE_COMPLETE",
+      lobbyId: lobbyInfo.lobby.id,
+      playerId: lobbyInfo.userId,
+      stroke: currentStrokeRef.current,
+    });
+
+    currentStrokeRef.current = null;
     setIsDrawing(false);
-    setMousePos(null);
-    cPush();
   }
 
   function clearCanvas() {
-    const canvas = canvasRef.current;
-    const ctx = ctxRef.current;
+    strokesRef.current = [];
+    redrawFromStrokes();
 
-    ctxRef.current.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    cPush();
+    // Broadcast clear to other players
+    send({
+      type: "CANVAS_CLEAR",
+      lobbyId: lobbyInfo.lobby.id,
+      playerId: lobbyInfo.userId,
+    });
   }
 
-  // Clear eraser indicator
   function clearPreview() {
     const preview = previewCanvasRef.current;
     if (!preview) return;
@@ -99,16 +152,10 @@ export default function MainPlayerCanvas({ canvasRef: externalCanvasRef }) {
     ctx.clearRect(0, 0, preview.width, preview.height);
   }
 
-  // Initialize canvas for eraser indicator
+  // Draw eraser indicator
   useEffect(() => {
     const preview = previewCanvasRef.current;
-    if (!preview) return;
-
-    // Clear indicator when not erasing or mouse not on canvas
-    if (tool !== "eraser" || !mousePos) {
-      clearPreview();
-      return;
-    }
+    if (!preview || !mousePos) return;
 
     preview.width = CANVAS_WIDTH;
     preview.height = CANVAS_HEIGHT;
@@ -116,11 +163,13 @@ export default function MainPlayerCanvas({ canvasRef: externalCanvasRef }) {
     const ctx = preview.getContext("2d");
     ctx.clearRect(0, 0, preview.width, preview.height);
 
-    ctx.beginPath();
-    ctx.arc(mousePos.x, mousePos.y, ERASER_SIZE / 2, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(0,0,0,0.6)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    if (tool === "eraser") {
+      ctx.beginPath();
+      ctx.arc(mousePos.x, mousePos.y, ERASER_SIZE / 2, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(0,0,0,0.6)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
   }, [mousePos, tool]);
 
   // Initialize canvas
@@ -139,21 +188,34 @@ export default function MainPlayerCanvas({ canvasRef: externalCanvasRef }) {
     ctx.lineWidth = BRUSH_SIZE;
 
     ctxRef.current = ctx;
-    cPush();
-  }, [canvasRef]);
+  }, []);
 
-  // Set whether eraser is active
+  // Undo on ctrl + z
   useEffect(() => {
-    if (!ctxRef.current) return;
+    function handleKeyDown(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+        e.preventDefault();
+        undoStroke();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
+
+  // Set tool properties
+  useEffect(() => {
+    const ctx = ctxRef.current;
+    if (!ctx) return;
 
     if (tool === "eraser") {
-      ctxRef.current.globalCompositeOperation = "source-over";
-      ctxRef.current.strokeStyle = "white";
-      ctxRef.current.lineWidth = ERASER_SIZE;
+      ctx.globalCompositeOperation = "source-over";
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = ERASER_SIZE;
     } else {
-      ctxRef.current.globalCompositeOperation = "source-over";
-      ctxRef.current.strokeStyle = "black";
-      ctxRef.current.lineWidth = BRUSH_SIZE;
+      ctx.globalCompositeOperation = "source-over";
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = BRUSH_SIZE;
     }
   }, [tool]);
 
@@ -167,7 +229,11 @@ export default function MainPlayerCanvas({ canvasRef: externalCanvasRef }) {
         >
           <MdDeleteForever />
         </button>
-        <button title="Undo" onClick={cUndo} className="action-button active">
+        <button
+          title="Undo"
+          onClick={undoStroke}
+          className="action-button active"
+        >
           <LuUndo2 />
         </button>
         <button
@@ -188,7 +254,8 @@ export default function MainPlayerCanvas({ canvasRef: externalCanvasRef }) {
           onMouseMove={draw}
           onMouseUp={stopDrawing}
           onMouseLeave={() => {
-            stopDrawing();
+            if (isDrawing) stopDrawing();
+            setIsDrawing(false);
             clearPreview();
           }}
         />

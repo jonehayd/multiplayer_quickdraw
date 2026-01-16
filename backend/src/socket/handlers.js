@@ -1,10 +1,10 @@
-import { lobbies } from "../state.js";
+import { inviteCodeMap, lobbies } from "../state.js";
 import { GameState } from "../../../shared/gameState.js";
 import { serializeLobby } from "../routes/lobby.js";
 
 // Handlers
 
-export function handleDisconnect({ context }) {
+export function handleDisconnect({ currentLobbyId, currentUserId }) {
   if (!currentLobbyId || !currentUserId) return;
 
   const lobby = lobbies.get(currentLobbyId);
@@ -15,10 +15,12 @@ export function handleDisconnect({ context }) {
   const wasHost = leavingPlayer?.isHost;
 
   console.log(`Disconnecting websocket for player with id ${currentUserId}`);
-  players.delete(currentUserId); // Destroy empty lobby
+  players.delete(currentUserId);
 
+  // Destroy empty lobby
   if (players.size === 0) {
     console.log(`Deleted lobby with id: ${currentLobbyId}`);
+    inviteCodeMap.delete(lobbies.get(currentLobbyId).inviteCode);
     lobbies.delete(currentLobbyId);
     return;
   }

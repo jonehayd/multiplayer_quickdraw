@@ -1,9 +1,12 @@
 import { useEffect, useState, useRef } from "react";
+import { useLobbyContext } from "../../contexts/LobbyContext";
 import MainPlayerCanvas from "../ui/main-player-canvas";
 import { initInference, predict } from "./inference";
 import GuessDisplay from "../ui/guess-display";
+import SideViewCanvas from "../ui/side-view-canvas";
 
-export default function TestInference() {
+export default function Game() {
+  const { lobbyInfo, drawingsByPlayer } = useLobbyContext();
   const [top3, setTop3] = useState([]);
   const preprocessedCanvasRef = useRef(null);
 
@@ -34,6 +37,10 @@ export default function TestInference() {
         </button>
       </div>
       <GuessDisplay guesses={top3} />
+      <SideViewCanvas
+        lobbyInfo={lobbyInfo}
+        drawingsByPlayer={drawingsByPlayer ?? {}}
+      />
     </div>
   );
 }

@@ -1,14 +1,17 @@
 import { MdPeopleAlt } from "react-icons/md";
 import { FaArrowLeft, FaCrown, FaCopy, FaCheck } from "react-icons/fa";
 import { useState } from "react";
+import { useLobbyContext } from "../../contexts/LobbyContext";
 import "./styles.css";
 
 const MAX_PLAYERS = 4;
 
-export default function Lobby({ lobbyInfo, onStartGame, onLeave }) {
+export default function Lobby() {
+  const { lobbyInfo, leaveLobby, send } = useLobbyContext();
   const [copied, setCopied] = useState(false);
 
   if (!lobbyInfo) return null;
+
   const { userId, lobby } = lobbyInfo;
   const { inviteCode, players } = lobby;
   const canStart = players.length >= 2;
@@ -34,10 +37,14 @@ export default function Lobby({ lobbyInfo, onStartGame, onLeave }) {
     setTimeout(() => setCopied(false), 1500);
   }
 
+  function handleStartGame() {
+    send({ type: "START_GAME" });
+  }
+
   return (
     <div className="lobby-page">
       {/* Exit lobby */}
-      <button onClick={onLeave} className="exit-lobby-btn">
+      <button onClick={leaveLobby} className="exit-lobby-btn">
         <FaArrowLeft />
         Exit Lobby
       </button>
@@ -96,7 +103,7 @@ export default function Lobby({ lobbyInfo, onStartGame, onLeave }) {
           title={startButtonTitle}
           className={`start-game-btn ${canStart && isHost ? "active" : ""}`}
           disabled={!canStart || !isHost}
-          onClick={onStartGame}
+          onClick={handleStartGame}
         >
           Start Game
         </button>

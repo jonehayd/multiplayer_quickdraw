@@ -88,7 +88,6 @@ export function joinLobby(req, res) {
 }
 
 export function joinRandomLobby(req, res) {
-  console.log(lobbies);
   const { displayName } = req.body;
 
   const publicLobbies = [...lobbies.values()].filter((l) => l.isPublic);

@@ -2,7 +2,7 @@ import express from "express";
 import http from "http";
 import { WebSocketServer } from "ws";
 import lobbyRoutes from "./routes/lobby.js";
-import { setupWebSockets } from "./ws/index.js";
+import { setupWebSockets } from "./socket/index.js";
 
 const app = express();
 app.use(express.json());

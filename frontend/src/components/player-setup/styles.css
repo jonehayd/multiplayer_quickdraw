@@ -164,3 +164,9 @@ input:focus {
   content: "✏️";
   margin-right: 0.4rem;
 }
+
+.join-error {
+  margin-top: 8px;
+  color: #ff4d4f;
+  font-size: 0.9rem;
+}

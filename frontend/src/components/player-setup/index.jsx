@@ -1,11 +1,16 @@
 import { useState } from "react";
+import { useLobbyContext } from "../../contexts/LobbyContext";
 import "./styles.css";
 import { FaPencil } from "react-icons/fa6";
 import ToggleGroup from "../ui/toggle-group";
 
-export default function PlayerSetup({ handleAction }) {
+export default function PlayerSetup() {
+  const { handleAction } = useLobbyContext();
+
   const [displayName, setDisplayName] = useState("");
   const [lobbyType, setLobbyType] = useState("public");
+  const [joinError, setJoinError] = useState("");
+  const [inviteCodeError, setInviteCodeError] = useState("");
   const [inviteCode, setInviteCode] = useState("");
 
   const isNameValid = displayName.trim().length > 0;
@@ -14,23 +19,34 @@ export default function PlayerSetup({ handleAction }) {
     handleAction({
       actionType: "create",
       displayName,
-      lobbyType,
+      isPublic: lobbyType === "public",
     });
   }
 
-  function onJoinWithCode() {
-    handleAction({
-      actionType: "joinCode",
-      displayName,
-      inviteCode,
-    });
+  async function onJoinWithCode() {
+    try {
+      setInviteCodeError("");
+      await handleAction({
+        actionType: "joinCode",
+        displayName,
+        inviteCode,
+      });
+    } catch (err) {
+      console.log("Invite code error caught");
+      setInviteCodeError(err.message);
+    }
   }
 
-  function onJoinRandom() {
-    handleAction({
-      actionType: "joinRandom",
-      displayName,
-    });
+  async function onJoinRandom() {
+    try {
+      setJoinError("");
+      await handleAction({
+        actionType: "joinRandom",
+        displayName,
+      });
+    } catch (err) {
+      setJoinError(err.message);
+    }
   }
 
   return (
@@ -50,7 +66,10 @@ export default function PlayerSetup({ handleAction }) {
           type="text"
           placeholder="Display name"
           value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
+          onChange={(e) => {
+            setDisplayName(e.target.value);
+            setJoinError("");
+          }}
           maxLength={16}
           autoFocus
         />
@@ -103,6 +122,7 @@ export default function PlayerSetup({ handleAction }) {
           >
             Join with Code
           </button>
+          {inviteCodeError && <p className="join-error">{inviteCodeError}</p>}
 
           <div className="divider">or</div>
 
@@ -114,6 +134,7 @@ export default function PlayerSetup({ handleAction }) {
           >
             Join Random Lobby
           </button>
+          {joinError && <p className="join-error">{joinError}</p>}
         </div>
       </div>
 
