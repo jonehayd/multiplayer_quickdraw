@@ -18,6 +18,24 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
     clearCanvasRef.current = clearCanvas;
   });
 
+  // Clear side canvases on round end
+  useEffect(() => {
+    if (!lobbyInfo) return;
+
+    // Check if the current state is ROUND_END
+    if (lobbyInfo.lobby.state === "ROUND_END") {
+      // Clear all side canvases
+      const otherPlayers = lobbyInfo.lobby.players.filter(
+        (player) => player.id !== lobbyInfo.userId,
+      );
+      otherPlayers.forEach((player) => {
+        clearCanvasRef.current(player.id);
+        console.log(`Cleared canvas for player ${player.id}`);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lobbyInfo?.lobby?.state, lobbyInfo?.lobby?.players, lobbyInfo?.userId]);
+
   useEffect(() => {
     if (!lobbyInfo) return;
 
@@ -33,7 +51,7 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
           type: "JOIN_LOBBY_SOCKET",
           lobbyId: lobbyInfo.lobby.id,
           userId: lobbyInfo.userId,
-        })
+        }),
       );
     };
 
@@ -50,7 +68,7 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
           applyCanvasUpdateRef.current(
             msg.playerId,
             msg.stroke,
-            msg.isComplete
+            msg.isComplete,
           );
           break;
 

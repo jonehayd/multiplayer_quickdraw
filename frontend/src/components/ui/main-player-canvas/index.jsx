@@ -10,8 +10,9 @@ const CANVAS_HEIGHT = 500;
 const BRUSH_SIZE = 15;
 const ERASER_SIZE = 15;
 const STROKE_UPDATE_INTERVAL = 50; // Send updates every 50ms while drawing
+const PREDICTION_INTERVAL = 500; // Send prediction results every 500 ms
 
-export default function MainPlayerCanvas() {
+export default function MainPlayerCanvas({ onStroke }) {
   const { send, lobbyInfo } = useLobbyContext();
   const canvasRef = useRef(null);
   const ctxRef = useRef(null);
@@ -19,6 +20,8 @@ export default function MainPlayerCanvas() {
   const currentStrokeRef = useRef(null);
   const previewCanvasRef = useRef(null);
   const lastUpdateTimeRef = useRef(0);
+  const canvasDirtyRef = useRef(false);
+  const predictionTimerRef = useRef(null);
 
   const [tool, setTool] = useState("pen"); // "pen" | "eraser"
   const [isDrawing, setIsDrawing] = useState(false);
@@ -72,6 +75,8 @@ export default function MainPlayerCanvas() {
     strokesRef.current.pop();
     redrawFromStrokes();
 
+    canvasDirtyRef.current = true;
+
     // Broadcast undo to other players
     send({
       type: "CANVAS_UNDO",
@@ -123,6 +128,9 @@ export default function MainPlayerCanvas() {
     ctx.lineTo(x, y);
     ctx.stroke();
 
+    // Mark canvas as changed
+    canvasDirtyRef.current = true;
+
     // Throttled updates - only send every STROKE_UPDATE_INTERVAL ms
     const now = Date.now();
     if (now - lastUpdateTimeRef.current >= STROKE_UPDATE_INTERVAL) {
@@ -146,6 +154,9 @@ export default function MainPlayerCanvas() {
     // Add completed stroke to history
     strokesRef.current.push(currentStrokeRef.current);
 
+    // Mark canvas as changed
+    canvasDirtyRef.current = true;
+
     // Send FINAL stroke to server
     send({
       type: "CANVAS_STROKE_UPDATE",
@@ -162,6 +173,8 @@ export default function MainPlayerCanvas() {
   function clearCanvas() {
     strokesRef.current = [];
     redrawFromStrokes();
+
+    canvasDirtyRef.current = true;
 
     // Broadcast clear to other players
     send({
@@ -245,6 +258,22 @@ export default function MainPlayerCanvas() {
       ctx.lineWidth = BRUSH_SIZE;
     }
   }, [tool]);
+
+  // Send predictions every set interval, only if the canvas has changed
+  useEffect(() => {
+    if (!onStroke) return;
+
+    predictionTimerRef.current = setInterval(() => {
+      if (!canvasDirtyRef.current) return;
+
+      canvasDirtyRef.current = false;
+      onStroke(canvasRef.current);
+    }, PREDICTION_INTERVAL);
+
+    return () => {
+      clearInterval(predictionTimerRef.current);
+    };
+  }, [onStroke]);
 
   return (
     <div className="player-canvas-container">

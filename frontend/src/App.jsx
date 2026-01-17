@@ -3,6 +3,8 @@ import { LobbyProvider } from "./contexts/LobbyProvider";
 import PlayerSetup from "./components/player-setup";
 import Lobby from "./components/lobby";
 import Game from "./components/game";
+import StartRound from "./components/start-round";
+import RoundEnd from "./components/end-round";
 import { GameState } from "../../shared/gameState";
 import "./App.css";
 
@@ -14,7 +16,10 @@ function AppContent() {
     <>
       {gameState == null && <PlayerSetup />}
       {gameState === GameState.LOBBY && <Lobby />}
+      {gameState === GameState.ROUND_START && <StartRound />}
       {gameState === GameState.GAME && <Game />}
+      {gameState === GameState.ROUND_END && <RoundEnd />}
+      {gameState === GameState.GAME_END && <GameEnd />}
     </>
   );
 }

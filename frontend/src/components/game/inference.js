@@ -7,7 +7,10 @@ export async function initInference() {
   ort.env.wasm.wasmPaths = "/";
 
   const classRes = await fetch("/selected_categories.txt");
-  CLASS_NAMES = (await classRes.text()).trim().split("\n");
+  CLASS_NAMES = (await classRes.text())
+    .split(/\r?\n/)
+    .map((w) => w.trim())
+    .filter(Boolean);
 
   const modelBuffer = await (await fetch("/quickdraw.onnx")).arrayBuffer();
   const externalDataBuffer = await (

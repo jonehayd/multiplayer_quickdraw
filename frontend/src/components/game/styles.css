@@ -1,12 +1,59 @@
-.predict-controls {
-  margin-top: 1rem;
+.game {
+  height: 100%;
   display: flex;
-  gap: 1rem;
+  flex-direction: column;
+  padding: 1.5rem;
+  gap: 1.5rem;
 }
 
-.prediction-results {
-  margin-top: 1rem;
-  background-color: #f0f0f0;
-  padding: 0.8rem 1rem;
-  border-radius: 8px;
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-timer {
+  display: flex;
+  flex-direction: column;
+}
+
+.timer-number {
+  font-size: 2.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.timer-label {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.game-word {
+  text-align: right;
+}
+
+.word-label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+}
+
+.word-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+.game-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.main-canvas {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
