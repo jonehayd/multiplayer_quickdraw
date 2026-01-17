@@ -9,7 +9,11 @@ import {
   handleCanvasClear,
 } from "../src/socket/handlers.js";
 import { lobbies, inviteCodeMap } from "../src/state.js";
-import { GameState } from "../../shared/gameState.js";
+import {
+  GameState,
+  RoundLengths,
+  CONFIDENCE_THRESHOLD_CUTOFF,
+} from "../../shared/gameState.js";
 
 // Mock WebSocket
 class MockWebSocket {
@@ -21,6 +25,45 @@ class MockWebSocket {
   send(data) {
     this.sentMessages.push(JSON.parse(data));
   }
+}
+
+// Helper to create test lobbies
+function createTestLobby({ state, word }) {
+  const ws1 = new MockWebSocket();
+  const ws2 = new MockWebSocket();
+
+  const lobby = {
+    id: "lobby-test",
+    inviteCode: "TEST",
+    isPublic: true,
+    state,
+    totalRounds: 1,
+    roundIndex: 0,
+    words: [word],
+    players: new Map([
+      [
+        "user1",
+        { id: "user1", name: "Player1", score: 0, isHost: true, ws: ws1 },
+      ],
+      [
+        "user2",
+        { id: "user2", name: "Player2", score: 0, isHost: false, ws: ws2 },
+      ],
+    ]),
+    game: {
+      guesses: [],
+      roundFinished: false,
+      roundTimer: null,
+      startTimer: null,
+      endTimer: null,
+      roundWinner: null,
+      phaseStartedAt: Date.now(),
+      phaseDuration: RoundLengths.ROUND_LEN,
+    },
+  };
+
+  lobbies.set(lobby.id, lobby);
+  return lobby;
 }
 
 describe("Game Handlers", () => {
@@ -199,7 +242,7 @@ describe("Game Handlers", () => {
   });
 
   describe("handleGuess", () => {
-    it("should record correct guess and finish round if confidence >= 0.8", () => {
+    it("should record correct guess and finish round if confidence >= threshold", () => {
       // Setup
       const ws1 = new MockWebSocket();
       const ws2 = new MockWebSocket();
@@ -225,6 +268,7 @@ describe("Game Handlers", () => {
           endTimer: null,
           guesses: [],
           roundWinner: null,
+          roundFinished: false,
         },
       };
       lobbies.set("lobby1", lobby);
@@ -232,7 +276,7 @@ describe("Game Handlers", () => {
       const context = { currentLobbyId: "lobby1", currentUserId: "user1" };
       const msg = {
         predictions: [
-          { label: "apple", confidence: 0.85 },
+          { label: "apple", confidence: CONFIDENCE_THRESHOLD_CUTOFF },
           { label: "orange", confidence: 0.1 },
         ],
       };
@@ -243,13 +287,15 @@ describe("Game Handlers", () => {
       // Assert
       expect(lobby.game.guesses).toHaveLength(1);
       expect(lobby.game.guesses[0].playerId).toBe("user1");
-      expect(lobby.game.guesses[0].confidence).toBe(0.85);
+      expect(lobby.game.guesses[0].confidence).toBe(
+        CONFIDENCE_THRESHOLD_CUTOFF,
+      );
       expect(lobby.state).toBe(GameState.ROUND_END);
       expect(lobby.players.get("user1").score).toBe(1);
       expect(lobby.roundWinner).toBe("Player1");
     });
 
-    it("should not finish round if confidence < 0.8", () => {
+    it("should not finish round if confidence < threshold", () => {
       // Setup
       const lobby = {
         id: "lobby1",
@@ -275,13 +321,16 @@ describe("Game Handlers", () => {
           endTimer: null,
           guesses: [],
           roundWinner: null,
+          roundFinished: false,
         },
       };
       lobbies.set("lobby1", lobby);
 
       const context = { currentLobbyId: "lobby1", currentUserId: "user1" };
       const msg = {
-        predictions: [{ label: "apple", confidence: 0.75 }],
+        predictions: [
+          { label: "apple", confidence: CONFIDENCE_THRESHOLD_CUTOFF - 0.05 },
+        ],
       };
 
       // Execute
@@ -319,6 +368,7 @@ describe("Game Handlers", () => {
           endTimer: null,
           guesses: [],
           roundWinner: null,
+          roundFinished: false,
         },
       };
       lobbies.set("lobby1", lobby);
@@ -334,6 +384,220 @@ describe("Game Handlers", () => {
       // Assert
       expect(lobby.game.guesses).toHaveLength(0);
       expect(lobby.state).toBe(GameState.GAME);
+    });
+  });
+
+  describe("Race Condition Tests", () => {
+    it("should ignore guesses that arrive after a winning guess", () => {
+      const lobby = createTestLobby({
+        state: GameState.GAME,
+        word: "cat",
+      });
+
+      const context1 = { currentLobbyId: lobby.id, currentUserId: "user1" };
+      const context2 = { currentLobbyId: lobby.id, currentUserId: "user2" };
+
+      // First guess triggers instant win
+      handleGuess({
+        msg: {
+          predictions: [
+            { label: "cat", confidence: CONFIDENCE_THRESHOLD_CUTOFF },
+          ],
+        },
+        context: context1,
+      });
+
+      expect(lobby.state).toBe(GameState.ROUND_END);
+      expect(lobby.roundWinner).toBe("Player1");
+      expect(lobby.winningGuess.playerId).toBe("user1");
+
+      // Late guess arrives AFTER round is finished
+      handleGuess({
+        msg: {
+          predictions: [{ label: "cat", confidence: 0.99 }],
+        },
+        context: context2,
+      });
+
+      // Winning guess must NOT change
+      expect(lobby.winningGuess.playerId).toBe("user1");
+      expect(lobby.winningGuess.confidence).toBe(CONFIDENCE_THRESHOLD_CUTOFF);
+      expect(lobby.game.guesses.length).toBe(1);
+    });
+
+    it("should ignore guesses after round timer finishes", () => {
+      const lobby = createTestLobby({
+        state: GameState.GAME,
+        word: "dog",
+      });
+
+      // Set up the timer by transitioning to GAME state properly
+      lobby.game.roundTimer = setTimeout(() => {
+        lobby.game.roundFinished = true;
+        lobby.state = GameState.ROUND_END;
+      }, RoundLengths.ROUND_LEN);
+
+      // Advance time to trigger timer-based finish
+      vi.advanceTimersByTime(RoundLengths.ROUND_LEN);
+
+      expect(lobby.state).toBe(GameState.ROUND_END);
+      expect(lobby.game.roundFinished).toBe(true);
+
+      // Guess arrives AFTER timer ended
+      handleGuess({
+        msg: {
+          predictions: [{ label: "dog", confidence: 0.9 }],
+        },
+        context: { currentLobbyId: lobby.id, currentUserId: "user1" },
+      });
+
+      expect(lobby.game.guesses.length).toBe(0);
+      expect(lobby.winningGuess).toBeUndefined();
+    });
+
+    it("should lock the first threshold-breaking guess as the winner", () => {
+      const lobby = createTestLobby({
+        state: GameState.GAME,
+        word: "apple",
+      });
+
+      const context1 = { currentLobbyId: lobby.id, currentUserId: "user1" };
+      const context2 = { currentLobbyId: lobby.id, currentUserId: "user2" };
+
+      // First player hits threshold
+      handleGuess({
+        msg: {
+          predictions: [
+            { label: "apple", confidence: CONFIDENCE_THRESHOLD_CUTOFF },
+          ],
+        },
+        context: context1,
+      });
+
+      // Second player's higher confidence arrives after
+      handleGuess({
+        msg: {
+          predictions: [{ label: "apple", confidence: 0.99 }],
+        },
+        context: context2,
+      });
+
+      // First player should win
+      expect(lobby.winningGuess.playerId).toBe("user1");
+      expect(lobby.players.get("user1").score).toBe(1);
+      expect(lobby.players.get("user2").score).toBe(0);
+    });
+
+    it("should prevent multiple finishRound calls from the same instant win", () => {
+      const lobby = createTestLobby({
+        state: GameState.GAME,
+        word: "banana",
+      });
+
+      const context = { currentLobbyId: lobby.id, currentUserId: "user1" };
+
+      // First winning guess
+      handleGuess({
+        msg: {
+          predictions: [
+            { label: "banana", confidence: CONFIDENCE_THRESHOLD_CUTOFF },
+          ],
+        },
+        context,
+      });
+
+      expect(lobby.game.roundFinished).toBe(true);
+
+      const initialScore = lobby.players.get("user1").score;
+      const initialWinner = lobby.roundWinner;
+
+      // Try to guess again (should be prevented)
+      handleGuess({
+        msg: {
+          predictions: [{ label: "banana", confidence: 0.96 }],
+        },
+        context,
+      });
+
+      // Score should not have increased twice
+      expect(lobby.players.get("user1").score).toBe(initialScore);
+      expect(lobby.roundWinner).toBe(initialWinner);
+      expect(lobby.game.roundFinished).toBe(true);
+    });
+
+    it("should handle concurrent guesses from multiple players correctly", () => {
+      const lobby = createTestLobby({
+        state: GameState.GAME,
+        word: "orange",
+      });
+
+      const context1 = { currentLobbyId: lobby.id, currentUserId: "user1" };
+      const context2 = { currentLobbyId: lobby.id, currentUserId: "user2" };
+
+      // Both players guess at "same time" (below threshold)
+      handleGuess({
+        msg: {
+          predictions: [
+            { label: "orange", confidence: CONFIDENCE_THRESHOLD_CUTOFF - 0.1 },
+          ],
+        },
+        context: context1,
+      });
+
+      handleGuess({
+        msg: {
+          predictions: [
+            { label: "orange", confidence: CONFIDENCE_THRESHOLD_CUTOFF - 0.05 },
+          ],
+        },
+        context: context2,
+      });
+
+      // Both guesses should be recorded
+      expect(lobby.game.guesses.length).toBe(2);
+      expect(lobby.state).toBe(GameState.GAME);
+
+      // Manually finish round (simulating timer expiry)
+      lobby.game.guesses.sort((a, b) => b.confidence - a.confidence);
+      const winnerId = lobby.game.guesses[0].playerId;
+      const player = lobby.players.get(winnerId);
+      player.score += 1;
+      lobby.roundWinner = player.name;
+      lobby.winningGuess = lobby.game.guesses[0];
+      lobby.game.roundFinished = true;
+      lobby.state = GameState.ROUND_END;
+
+      // Highest confidence should win
+      expect(lobby.roundWinner).toBe("Player2");
+      expect(lobby.winningGuess.playerId).toBe("user2");
+    });
+
+    it("should reset roundFinished flag for new rounds", () => {
+      const lobby = createTestLobby({
+        state: GameState.GAME,
+        word: "test",
+      });
+
+      const context = { currentLobbyId: lobby.id, currentUserId: "user1" };
+
+      // Win first round
+      handleGuess({
+        msg: {
+          predictions: [
+            { label: "test", confidence: CONFIDENCE_THRESHOLD_CUTOFF },
+          ],
+        },
+        context,
+      });
+
+      expect(lobby.game.roundFinished).toBe(true);
+      expect(lobby.state).toBe(GameState.ROUND_END);
+
+      // Advance to next round (which would be GAME_END since totalRounds = 1)
+      vi.advanceTimersByTime(RoundLengths.END_ROUND_LEN);
+
+      // Should transition to GAME_END (since totalRounds = 1)
+      expect(lobby.state).toBe(GameState.GAME_END);
     });
   });
 
@@ -534,7 +798,9 @@ describe("Game Handlers", () => {
 
       // Make winning guess
       const msg = {
-        predictions: [{ label: lobby.words[0], confidence: 0.9 }],
+        predictions: [
+          { label: lobby.words[0], confidence: CONFIDENCE_THRESHOLD_CUTOFF },
+        ],
       };
       handleGuess({ msg, context });
       expect(lobby.state).toBe(GameState.ROUND_END);

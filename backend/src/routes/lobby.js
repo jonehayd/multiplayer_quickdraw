@@ -21,6 +21,7 @@ export function serializeLobby(lobby) {
     roundIndex: lobby.roundIndex,
     totalRounds: lobby.totalRounds,
     roundWinner: lobby.roundWinner ?? null,
+    winningGuess: lobby.winningGuess ?? null,
     createdAt: lobby.createdAt,
     phaseStartedAt: lobby.game?.phaseStartedAt ?? null,
     phaseDuration: lobby.game?.phaseDuration ?? null,

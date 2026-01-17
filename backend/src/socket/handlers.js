@@ -1,5 +1,9 @@
 import { inviteCodeMap, lobbies } from "../state.js";
-import { GameState, RoundLengths } from "../../../shared/gameState.js";
+import {
+  GameState,
+  RoundLengths,
+  CONFIDENCE_THRESHOLD_CUTOFF,
+} from "../../../shared/gameState.js";
 import { serializeLobby } from "../routes/lobby.js";
 import { readCategoriesFile, getRandomWordsArray } from "../game.js";
 
@@ -75,6 +79,7 @@ export async function handleStartGame({ context }) {
     endTimer: null,
     guesses: [],
     roundWinner: null,
+    roundFinished: false,
   };
 
   transitionLobbyState(lobby, GameState.ROUND_START);
@@ -84,19 +89,47 @@ export function handleGuess({ msg, context }) {
   const lobby = lobbies.get(context.currentLobbyId);
   if (!lobby || lobby.state !== GameState.GAME) return;
 
+  // Early return if round is already finished
+  if (lobby.game.roundFinished) {
+    console.log(
+      `Ignoring late guess from ${context.currentUserId} - round already finished`,
+    );
+    return;
+  }
+
   const word = lobby.words[lobby.roundIndex];
 
   const correct = msg.predictions.find((p) => p.label === word);
 
   if (!correct) return;
 
+  // Check again before adding guess
+  if (lobby.game.roundFinished) {
+    console.log(
+      `Race condition avoided: ignoring guess from ${context.currentUserId}`,
+    );
+    return;
+  }
+
+  const confidence = Number(correct.confidence);
+  if (Number.isNaN(confidence)) return;
+
   lobby.game.guesses.push({
     playerId: context.currentUserId,
-    confidence: correct.confidence,
+    confidence: confidence,
   });
 
-  if (correct.confidence >= 0.8) {
-    finishRound(lobby, context.currentUserId);
+  console.log(
+    `[${lobby.roundIndex}] CHECKING CONFIDENCE 
+    {${correct.confidence}, ${typeof correct.confidence}}`,
+  );
+
+  if (confidence >= CONFIDENCE_THRESHOLD_CUTOFF) {
+    console.log(`[${lobby.roundIndex}] Guess greater than 80%, ${confidence}`);
+    finishRound(lobby, context.currentUserId, {
+      playerId: context.currentUserId,
+      confidence,
+    });
   }
 }
 
@@ -175,6 +208,7 @@ export function handleCanvasClear({ msg, context }) {
 function startRoundStart(lobby) {
   clearTimers(lobby);
   lobby.roundWinner = null;
+  lobby.winningGuess = null;
 
   lobby.game.startTimer = setTimeout(() => {
     transitionLobbyState(lobby, GameState.GAME);
@@ -186,6 +220,7 @@ function startGamePhase(lobby) {
 
   lobby.game.guesses = [];
   lobby.game.roundWinner = null;
+  lobby.game.roundFinished = false;
 
   lobby.game.roundTimer = setTimeout(() => {
     finishRound(lobby);
@@ -256,21 +291,42 @@ function transitionLobbyState(lobby, nextState) {
   broadcastLobbyUpdate(lobby);
 }
 
-function finishRound(lobby, instantWinnerId = null) {
+function finishRound(
+  lobby,
+  instantWinnerId = null,
+  instantWinningGuess = null,
+) {
   if (lobby.state !== GameState.GAME) return;
+
+  if (lobby.game.roundFinished) {
+    console.log(`Round already finished, ignoring duplicate finish attempt`);
+    return;
+  }
+
+  lobby.game.roundFinished = true;
   clearTimers(lobby);
 
   let winnerId = instantWinnerId;
+  let winningGuess = instantWinningGuess;
 
+  // If no instant winner, find highest confidence
   if (!winnerId && lobby.game.guesses.length > 0) {
     lobby.game.guesses.sort((a, b) => b.confidence - a.confidence);
     winnerId = lobby.game.guesses[0].playerId;
+    winningGuess = lobby.game.guesses[0];
   }
 
   if (winnerId) {
     const player = lobby.players.get(winnerId);
     player.score += 1;
     lobby.roundWinner = player.name;
+
+    if (winningGuess) {
+      lobby.winningGuess = winningGuess;
+      console.log(
+        `[${lobby.roundIndex}] Winning guess: [${winningGuess.playerId}, ${winningGuess.confidence}]`,
+      );
+    }
   }
 
   transitionLobbyState(lobby, GameState.ROUND_END);
