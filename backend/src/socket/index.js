@@ -1,7 +1,7 @@
-// index.js
 import {
   handleJoinLobby,
   handleStartGame,
+  handleGuess,
   handleCanvasStroke,
   handleCanvasUndo,
   handleCanvasClear,
@@ -9,8 +9,12 @@ import {
 } from "./handlers.js";
 
 const handlers = {
+  // Lobby / game flow
   JOIN_LOBBY_SOCKET: handleJoinLobby,
   START_GAME: handleStartGame,
+  GUESS: handleGuess,
+
+  // Canvas (real-time passthrough)
   CANVAS_STROKE_UPDATE: handleCanvasStroke,
   CANVAS_UNDO: handleCanvasUndo,
   CANVAS_CLEAR: handleCanvasClear,

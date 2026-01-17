@@ -14,8 +14,12 @@ export function serializeLobby(lobby) {
       id: p.id,
       name: p.name,
       isHost: p.isHost,
+      score: p.score,
     })),
     state: lobby.state,
+    word: lobby.words?.[lobby.roundIndex] ?? null,
+    roundIndex: lobby.roundIndex,
+    totalRounds: lobby.totalRounds,
     createdAt: lobby.createdAt,
   };
 }
@@ -23,16 +27,25 @@ export function serializeLobby(lobby) {
 // Lobby creation
 
 export function createLobby(req, res) {
-  const { displayName, isPublic } = req.body;
+  let { displayName, isPublic, totalRounds } = req.body;
 
   if (!displayName)
     return res.status(400).json({ error: "Display name required" });
-  if (isPublic == null)
-    return res.status(400).json({ error: "isPublic is required" });
+
+  // Default public
+  if (isPublic === undefined) {
+    isPublic = true;
+  }
+
+  // Default to 9 rounds if number not specified
+  if (!totalRounds) {
+    totalRounds = 9;
+  }
 
   const lobbyId = createLobbyId();
   let inviteCode;
 
+  // Create a unique invite code and add it to the map
   do {
     inviteCode = createInviteCode();
   } while (inviteCodeMap.has(inviteCode));
@@ -46,8 +59,14 @@ export function createLobby(req, res) {
     inviteCode,
     isPublic,
     players: new Map([
-      [userId, { id: userId, name: displayName, ws: null, isHost: true }],
+      [
+        userId,
+        { id: userId, name: displayName, ws: null, isHost: true, score: 0 },
+      ],
     ]),
+    totalRounds: totalRounds,
+    roundIndex: 0,
+    words: [],
     state: GameState.LOBBY,
     createdAt: Date.now(),
   };
@@ -79,6 +98,7 @@ export function joinLobby(req, res) {
     name: displayName,
     ws: null,
     isHost: false,
+    score: 0,
   });
 
   res.json({
@@ -104,6 +124,7 @@ export function joinRandomLobby(req, res) {
     name: displayName,
     ws: null,
     isHost: false,
+    score: 0,
   });
 
   res.json({

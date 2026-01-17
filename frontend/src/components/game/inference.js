@@ -25,14 +25,14 @@ export async function initInference() {
   });
 }
 
-function getCanvasTensor(canvas, previewCanvas = null) {
+function getCanvasTensor(canvas) {
   const SIZE = 28;
   const ctx = canvas.getContext("2d");
   const { data, width, height } = ctx.getImageData(
     0,
     0,
     canvas.width,
-    canvas.height
+    canvas.height,
   );
 
   let minX = width,
@@ -83,7 +83,7 @@ function getCanvasTensor(canvas, previewCanvas = null) {
     (SIZE - drawW) / 2,
     (SIZE - drawH) / 2,
     drawW,
-    drawH
+    drawH,
   );
 
   const pixels = tempCtx.getImageData(0, 0, SIZE, SIZE).data;
@@ -95,25 +95,6 @@ function getCanvasTensor(canvas, previewCanvas = null) {
     const inverted = 1 - gray / 255;
     tensorData[i] = inverted > THRESHOLD ? 1 : 0;
   }
-  // Preview canvas for the preprocessed image to see if something is wrong
-  //   if (previewCanvas) {
-  //     const pctx = previewCanvas.getContext("2d");
-  //     pctx.imageSmoothingEnabled = false;
-
-  //     const img = pctx.createImageData(SIZE, SIZE);
-  //     for (let i = 0; i < SIZE * SIZE; i++) {
-  //       const v = tensorData[i] * 255;
-  //       img.data.set([v, v, v, 255], i * 4);
-  //     }
-
-  //     const vis = document.createElement("canvas");
-  //     vis.width = SIZE;
-  //     vis.height = SIZE;
-  //     vis.getContext("2d").putImageData(img, 0, 0);
-
-  //     pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
-  //     pctx.drawImage(vis, 0, 0, previewCanvas.width, previewCanvas.height);
-  //   }
 
   return new ort.Tensor("float32", tensorData, [1, 1, SIZE, SIZE]);
 }
