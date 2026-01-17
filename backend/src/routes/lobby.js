@@ -20,7 +20,10 @@ export function serializeLobby(lobby) {
     word: lobby.words?.[lobby.roundIndex] ?? null,
     roundIndex: lobby.roundIndex,
     totalRounds: lobby.totalRounds,
+    roundWinner: lobby.roundWinner ?? null,
     createdAt: lobby.createdAt,
+    phaseStartedAt: lobby.game?.phaseStartedAt ?? null,
+    phaseDuration: lobby.game?.phaseDuration ?? null,
   };
 }
 

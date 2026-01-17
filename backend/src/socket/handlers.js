@@ -231,14 +231,20 @@ function transitionLobbyState(lobby, nextState) {
 
   switch (nextState) {
     case GameState.ROUND_START:
+      lobby.game.phaseStartedAt = Date.now();
+      lobby.game.phaseDuration = RoundLengths.START_ROUND_LEN;
       startRoundStart(lobby);
       break;
 
     case GameState.GAME:
+      lobby.game.phaseStartedAt = Date.now();
+      lobby.game.phaseDuration = RoundLengths.ROUND_LEN;
       startGamePhase(lobby);
       break;
 
     case GameState.ROUND_END:
+      lobby.game.phaseStartedAt = Date.now();
+      lobby.game.phaseDuration = RoundLengths.END_ROUND_LEN;
       startRoundEnd(lobby);
       break;
 

@@ -13,6 +13,8 @@
  *   totalRounds: int
  *   words: Array<string>
  *   game: Game
+ *   phaseStartedAt,
+ *   phaseDuration,
  * }
  *
  * players:

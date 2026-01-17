@@ -14,7 +14,7 @@ const handlers = {
   START_GAME: handleStartGame,
   GUESS: handleGuess,
 
-  // Canvas (real-time passthrough)
+  // Canvas
   CANVAS_STROKE_UPDATE: handleCanvasStroke,
   CANVAS_UNDO: handleCanvasUndo,
   CANVAS_CLEAR: handleCanvasClear,
