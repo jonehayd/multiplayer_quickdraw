@@ -2,13 +2,15 @@ import { useEffect, useRef } from "react";
 
 export function useSocket({ wsRef, lobbyState, canvasState }) {
   const { lobbyInfo, updateLobby } = lobbyState;
-  const { applyCanvasUpdate, applyCanvasUndo, clearCanvas } = canvasState;
+  const { applyCanvasUpdate, applyCanvasUndo, clearCanvas, drawingsByPlayer } =
+    canvasState;
 
   // Store callbacks in refs so they don't trigger reconnections
   const updateLobbyRef = useRef(updateLobby);
   const applyCanvasUpdateRef = useRef(applyCanvasUpdate);
   const applyCanvasUndoRef = useRef(applyCanvasUndo);
   const clearCanvasRef = useRef(clearCanvas);
+  const hasSentCanvasRef = useRef(false);
 
   // Keep refs updated
   useEffect(() => {
@@ -18,23 +20,53 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
     clearCanvasRef.current = clearCanvas;
   });
 
-  // Clear side canvases on round end
+  // Send winning canvas if winner and clear side canvases on round end
   useEffect(() => {
     if (!lobbyInfo) return;
 
-    // Check if the current state is ROUND_END
+    // Send canvas when roundWinnerId is set
+    const winnerId = lobbyInfo.lobby.roundWinnerId;
+
+    if (
+      winnerId &&
+      lobbyInfo.userId === winnerId &&
+      !hasSentCanvasRef.current
+    ) {
+      hasSentCanvasRef.current = true;
+
+      const myCanvas = drawingsByPlayer[lobbyInfo.userId] || [];
+      console.log(
+        `Sending winning canvas - Id: ${winnerId}, Strokes: ${myCanvas.length}`,
+      );
+
+      wsRef.current?.send(
+        JSON.stringify({
+          type: "WINNING_CANVAS",
+          canvas: myCanvas,
+        }),
+      );
+    }
+
+    // Clear side canvases when entering ROUND_END
     if (lobbyInfo.lobby.state === "ROUND_END") {
-      // Clear all side canvases
       const otherPlayers = lobbyInfo.lobby.players.filter(
         (player) => player.id !== lobbyInfo.userId,
       );
       otherPlayers.forEach((player) => {
         clearCanvasRef.current(player.id);
-        console.log(`Cleared canvas for player ${player.id}`);
       });
     }
+
+    // Reset flag when new round starts
+    if (lobbyInfo.lobby.state === "ROUND_START") {
+      hasSentCanvasRef.current = false;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lobbyInfo?.lobby?.state, lobbyInfo?.lobby?.players, lobbyInfo?.userId]);
+  }, [
+    lobbyInfo?.lobby?.roundWinnerId,
+    lobbyInfo?.lobby?.state,
+    lobbyInfo?.userId,
+  ]);
 
   useEffect(() => {
     if (!lobbyInfo) return;

@@ -13,7 +13,13 @@ const STROKE_UPDATE_INTERVAL = 50; // Send updates every 50ms while drawing
 const PREDICTION_INTERVAL = 500; // Send prediction results every 500 ms
 
 export default function MainPlayerCanvas({ onStroke }) {
-  const { send, lobbyInfo } = useLobbyContext();
+  const {
+    send,
+    lobbyInfo,
+    applyCanvasUpdate,
+    applyCanvasUndo,
+    clearCanvas: clearCanvasContext,
+  } = useLobbyContext();
   const canvasRef = useRef(null);
   const ctxRef = useRef(null);
   const strokesRef = useRef([]); // all committed strokes
@@ -76,6 +82,9 @@ export default function MainPlayerCanvas({ onStroke }) {
     redrawFromStrokes();
 
     canvasDirtyRef.current = true;
+
+    // Sync undo to context as well
+    applyCanvasUndo(lobbyInfo.userId);
 
     // Broadcast undo to other players
     send({
@@ -157,6 +166,9 @@ export default function MainPlayerCanvas({ onStroke }) {
     // Mark canvas as changed
     canvasDirtyRef.current = true;
 
+    // Add stroke to context so it's available for sending later
+    applyCanvasUpdate(lobbyInfo.userId, currentStrokeRef.current, true);
+
     // Send FINAL stroke to server
     send({
       type: "CANVAS_STROKE_UPDATE",
@@ -175,6 +187,9 @@ export default function MainPlayerCanvas({ onStroke }) {
     redrawFromStrokes();
 
     canvasDirtyRef.current = true;
+
+    // Clear from context as well
+    clearCanvasContext(lobbyInfo.userId);
 
     // Broadcast clear to other players
     send({

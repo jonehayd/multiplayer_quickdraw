@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useLobbyContext } from "../../contexts/LobbyContext";
 import { useCountdown } from "../../hooks/useCountdown";
 import MainPlayerCanvas from "../ui/main-player-canvas";
@@ -9,8 +9,9 @@ import { initInference, predict } from "./inference";
 import "./styles.css";
 
 export default function Game() {
-  const { lobbyInfo, send } = useLobbyContext();
+  const { lobbyInfo, send, drawingsByPlayer } = useLobbyContext();
   const lobby = lobbyInfo?.lobby;
+  const mainCanvasRef = useRef(null);
 
   const [top3, setTop3] = useState([]);
 
@@ -28,12 +29,16 @@ export default function Game() {
       const results = await predict(canvas);
       setTop3(results);
 
+      // Get current canvas strokes from context
+      const currentCanvasStrokes = drawingsByPlayer[lobbyInfo.userId] || [];
+
       send({
         type: "GUESS",
         predictions: results,
+        canvas: currentCanvasStrokes,
       });
     },
-    [send],
+    [send, lobbyInfo.userId, drawingsByPlayer],
   );
 
   if (!lobby) return <p>Loading game...</p>;

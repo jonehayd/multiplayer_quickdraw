@@ -5,8 +5,10 @@ import Lobby from "./components/lobby";
 import Game from "./components/game";
 import StartRound from "./components/start-round";
 import RoundEnd from "./components/end-round";
+import GameEnd from "./components/game-end";
 import { GameState } from "../../shared/gameState";
 import "./App.css";
+import TestGameEnd from "./components/game-end/game-end-test";
 
 function AppContent() {
   const { lobbyInfo } = useLobbyContext();
