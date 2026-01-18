@@ -6,6 +6,7 @@ import {
   handleCanvasUndo,
   handleCanvasClear,
   handleDisconnect,
+  handleWinningCanvas,
 } from "./handlers.js";
 
 const handlers = {
@@ -13,6 +14,7 @@ const handlers = {
   JOIN_LOBBY_SOCKET: handleJoinLobby,
   START_GAME: handleStartGame,
   GUESS: handleGuess,
+  WINNING_CANVAS: handleWinningCanvas,
 
   // Canvas
   CANVAS_STROKE_UPDATE: handleCanvasStroke,

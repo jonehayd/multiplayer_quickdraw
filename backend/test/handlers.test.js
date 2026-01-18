@@ -292,7 +292,7 @@ describe("Game Handlers", () => {
       );
       expect(lobby.state).toBe(GameState.ROUND_END);
       expect(lobby.players.get("user1").score).toBe(1);
-      expect(lobby.roundWinner).toBe("Player1");
+      expect(lobby.game.roundWinner).toBe("Player1");
     });
 
     it("should not finish round if confidence < threshold", () => {
@@ -509,7 +509,7 @@ describe("Game Handlers", () => {
       expect(lobby.game.roundFinished).toBe(true);
 
       const initialScore = lobby.players.get("user1").score;
-      const initialWinner = lobby.roundWinner;
+      const initialWinner = lobby.game.roundWinner;
 
       // Try to guess again (should be prevented)
       handleGuess({
@@ -521,7 +521,7 @@ describe("Game Handlers", () => {
 
       // Score should not have increased twice
       expect(lobby.players.get("user1").score).toBe(initialScore);
-      expect(lobby.roundWinner).toBe(initialWinner);
+      expect(lobby.game.roundWinner).toBe(initialWinner);
       expect(lobby.game.roundFinished).toBe(true);
     });
 
@@ -562,14 +562,14 @@ describe("Game Handlers", () => {
       const winnerId = lobby.game.guesses[0].playerId;
       const player = lobby.players.get(winnerId);
       player.score += 1;
-      lobby.roundWinner = player.name;
+      lobby.game.roundWinner = player.name;
       lobby.winningGuess = lobby.game.guesses[0];
       lobby.game.roundFinished = true;
       lobby.state = GameState.ROUND_END;
 
       // Highest confidence should win
-      expect(lobby.roundWinner).toBe("Player2");
-      expect(lobby.winningGuess.playerId).toBe("user2");
+      expect(lobby.game.roundWinner).toBe("Player2");
+      expect(lobby.game.winningGuess.playerId).toBe("user2");
     });
 
     it("should reset roundFinished flag for new rounds", () => {
