@@ -2,8 +2,7 @@ import { useEffect, useRef } from "react";
 
 export function useSocket({ wsRef, lobbyState, canvasState }) {
   const { lobbyInfo, updateLobby } = lobbyState;
-  const { applyCanvasUpdate, applyCanvasUndo, clearCanvas, drawingsByPlayer } =
-    canvasState;
+  const { applyCanvasUpdate, applyCanvasUndo, clearCanvas } = canvasState;
 
   // Store callbacks in refs so they don't trigger reconnections
   const updateLobbyRef = useRef(updateLobby);
@@ -20,34 +19,20 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
     clearCanvasRef.current = clearCanvas;
   });
 
-  // Send winning canvas if winner and clear side canvases on round end
+  // Clear canvases on round transitions
   useEffect(() => {
     if (!lobbyInfo) return;
 
-    // Send canvas when roundWinnerId is set
-    const winnerId = lobbyInfo.lobby.roundWinnerId;
-
-    if (
-      winnerId &&
-      lobbyInfo.userId === winnerId &&
-      !hasSentCanvasRef.current
-    ) {
-      hasSentCanvasRef.current = true;
-
-      const myCanvas = drawingsByPlayer[lobbyInfo.userId] || [];
-      console.log(
-        `Sending winning canvas - Id: ${winnerId}, Strokes: ${myCanvas.length}`,
-      );
-
-      wsRef.current?.send(
-        JSON.stringify({
-          type: "WINNING_CANVAS",
-          canvas: myCanvas,
-        }),
-      );
+    // When entering ROUND_START, clear all canvases including the current player's
+    if (lobbyInfo.lobby.state === "ROUND_START") {
+      hasSentCanvasRef.current = false;
+      // Clear all player canvases (including own canvas for the new round)
+      lobbyInfo.lobby.players.forEach((player) => {
+        clearCanvasRef.current(player.id);
+      });
     }
 
-    // Clear side canvases when entering ROUND_END
+    // When entering ROUND_END, only clear other players' canvases (keep current player visible)
     if (lobbyInfo.lobby.state === "ROUND_END") {
       const otherPlayers = lobbyInfo.lobby.players.filter(
         (player) => player.id !== lobbyInfo.userId,
@@ -55,11 +40,6 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
       otherPlayers.forEach((player) => {
         clearCanvasRef.current(player.id);
       });
-    }
-
-    // Reset flag when new round starts
-    if (lobbyInfo.lobby.state === "ROUND_START") {
-      hasSentCanvasRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [

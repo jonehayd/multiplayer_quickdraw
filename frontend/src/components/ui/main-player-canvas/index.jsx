@@ -12,7 +12,7 @@ const ERASER_SIZE = 15;
 const STROKE_UPDATE_INTERVAL = 50; // Send updates every 50ms while drawing
 const PREDICTION_INTERVAL = 500; // Send prediction results every 500 ms
 
-export default function MainPlayerCanvas({ onStroke }) {
+export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
   const {
     send,
     lobbyInfo,
@@ -140,6 +140,11 @@ export default function MainPlayerCanvas({ onStroke }) {
     // Mark canvas as changed
     canvasDirtyRef.current = true;
 
+    // Notify parent of current stroke
+    if (onCurrentStroke) {
+      onCurrentStroke(stroke);
+    }
+
     // Throttled updates - only send every STROKE_UPDATE_INTERVAL ms
     const now = Date.now();
     if (now - lastUpdateTimeRef.current >= STROKE_UPDATE_INTERVAL) {
@@ -179,6 +184,12 @@ export default function MainPlayerCanvas({ onStroke }) {
     });
 
     currentStrokeRef.current = null;
+    
+    // Notify parent that stroke is done
+    if (onCurrentStroke) {
+      onCurrentStroke(null);
+    }
+    
     setIsDrawing(false);
   }
 
@@ -330,7 +341,6 @@ export default function MainPlayerCanvas({ onStroke }) {
             clearPreview();
           }}
         />
-        <canvas ref={previewCanvasRef} className="preview-canvas" />
       </div>
     </div>
   );

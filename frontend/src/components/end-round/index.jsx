@@ -1,8 +1,12 @@
 import { useLobbyContext } from "../../contexts/LobbyContext";
 import { useCountdown } from "../../hooks/useCountdown";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import "./styles.css";
-import { useLayoutEffect } from "react";
+
+const ORIGINAL_WIDTH = 800;
+const ORIGINAL_HEIGHT = 500;
+const DISPLAY_WIDTH = 400;
+const DISPLAY_HEIGHT = 250;
 
 export default function RoundEnd() {
   const { lobbyInfo } = useLobbyContext();
@@ -15,24 +19,26 @@ export default function RoundEnd() {
     roundWinner,
     winningGuess,
     winningCanvas,
-    winningCanvasReady,
   } = lobby || {};
 
   const secondsLeft = useCountdown(phaseStartedAt, phaseDuration);
+  const confidence = Number(winningGuess?.confidence);
 
   // Draw winning canvas
-  useLayoutEffect(() => {
-    console.log(`[end-round] Winning canvas: ${winningCanvas}`);
-    if (!canvasRef.current || !winningCanvas) return;
-    console.log(`[end-round] Drawing winning canvas: ${winningCanvas}`);
+  useEffect(() => {
+    if (!canvasRef.current || !winningCanvas || winningCanvas.length === 0)
+      return;
+
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
-    // Fill background white
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw each stroke
+    const scaleX = DISPLAY_WIDTH / ORIGINAL_WIDTH;
+    const scaleY = DISPLAY_HEIGHT / ORIGINAL_HEIGHT;
+
+    // Draw each stroke with proper scaling
     ctx.lineCap = "round";
     winningCanvas.forEach((stroke) => {
       const points = stroke.points;
@@ -40,17 +46,19 @@ export default function RoundEnd() {
 
       ctx.beginPath();
       ctx.strokeStyle = stroke.color;
-      ctx.lineWidth = stroke.size;
+      ctx.lineWidth = stroke.size * scaleX;
 
       points.forEach((p, i) => {
-        if (i === 0) ctx.moveTo(p.x, p.y);
-        else ctx.lineTo(p.x, p.y);
+        const x = p.x * scaleX;
+        const y = p.y * scaleY;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       });
 
       ctx.stroke();
       ctx.closePath();
     });
-  }, [winningCanvas, winningCanvasReady]);
+  }, [winningCanvas]);
 
   if (!lobby)
     return <p className="round-end-error">Unable to load lobby info!</p>;
@@ -76,7 +84,7 @@ export default function RoundEnd() {
             <div className="guess-row">
               <span className="guess-label">Confidence</span>
               <span className="guess-value">
-                {Math.round(winningGuess.confidence)}%
+                {Number.isFinite(confidence) ? Math.round(confidence) : "—"}%
               </span>
             </div>
           </div>
@@ -87,8 +95,8 @@ export default function RoundEnd() {
             <span className="canvas-label">Winning Drawing</span>
             <canvas
               ref={canvasRef}
-              width={400}
-              height={250}
+              width={DISPLAY_WIDTH}
+              height={DISPLAY_HEIGHT}
               className="winning-canvas"
             />
           </div>

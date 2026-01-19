@@ -79,17 +79,25 @@ export default function GameEnd() {
 function CanvasPreview({ canvasData }) {
   const canvasRef = useRef(null);
 
+  const ORIGINAL_WIDTH = 800;
+  const ORIGINAL_HEIGHT = 500;
+  const DISPLAY_WIDTH = 400;
+  const DISPLAY_HEIGHT = 250;
+
   useEffect(() => {
     if (!canvasRef.current || !canvasData.canvas) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
-    // Fill background white
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw each stroke
+    // Calculate scale factors
+    const scaleX = DISPLAY_WIDTH / ORIGINAL_WIDTH;
+    const scaleY = DISPLAY_HEIGHT / ORIGINAL_HEIGHT;
+
+    // Draw each stroke with proper scaling
     ctx.lineCap = "round";
     canvasData.canvas.forEach((stroke) => {
       const points = stroke.points;
@@ -97,11 +105,11 @@ function CanvasPreview({ canvasData }) {
 
       ctx.beginPath();
       ctx.strokeStyle = stroke.color;
-      ctx.lineWidth = stroke.size * 0.5; // Scale down for smaller canvas
+      ctx.lineWidth = stroke.size * scaleX;
 
       points.forEach((p, i) => {
-        const x = p.x * 0.5; // Scale coordinates
-        const y = p.y * 0.5;
+        const x = p.x * scaleX;
+        const y = p.y * scaleY;
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
