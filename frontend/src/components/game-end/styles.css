@@ -160,7 +160,21 @@
 
 .winning-canvases-gallery {
   margin-top: 3rem;
-  width: 100%;
+}
+
+.canvas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.5rem;
+}
+
+.canvas-preview-card.no-winner {
+  background: #f4f4f4;
+  opacity: 0.75;
+}
+
+.canvas-preview-card.no-winner canvas {
+  filter: grayscale(1);
 }
 
 .winning-canvases-gallery h2 {
@@ -176,12 +190,16 @@
 }
 
 .canvas-preview-card {
-  display: flex;
-  flex-direction: column;
-  border: 2px solid #e0e0e0;
+  background: #fff;
   border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 0.75rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.canvas-preview-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
 }
 
 .canvas-preview-card canvas {
@@ -190,25 +208,24 @@
 }
 
 .canvas-info {
-  padding: 1rem;
-  background: #f9f9f9;
+  margin-top: 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .round-label {
-  font-size: 0.85rem;
-  color: #666;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #888;
 }
 
 .word-label {
-  font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
+  font-size: 1rem;
 }
 
 .player-label {
-  font-size: 0.9rem;
-  color: #888;
+  font-size: 0.85rem;
+  color: #555;
 }

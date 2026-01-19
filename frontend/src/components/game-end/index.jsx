@@ -1,6 +1,6 @@
 import { GiDiamondTrophy } from "react-icons/gi";
 import { useLobbyContext } from "../../contexts/LobbyContext.jsx";
-import { useEffect, useRef } from "react";
+import { useRef, useEffect } from "react";
 import "./styles.css";
 
 export default function GameEnd() {
@@ -8,17 +8,36 @@ export default function GameEnd() {
 
   if (!lobbyInfo) return null;
 
-  const { players, winningCanvases } = lobbyInfo.lobby;
+  const { winningCanvases, totalRounds } = lobbyInfo.lobby;
+  const players = lobbyInfo.lobby.players;
 
   // Sort players by score descending
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
   const podiumPlayers = sortedPlayers.slice(0, 3); // top 3
-  const otherPlayers = sortedPlayers.slice(3, 5); // next 2
+  const otherPlayers = sortedPlayers.slice(3); // The rest
 
   const winningPlayerId = podiumPlayers[0]?.id;
 
   const handleBackToLobby = () => leaveLobby();
+
+  // Build complete rounds array including empty canvases for no-winner rounds
+  const allRounds = [];
+  for (let i = 0; i < totalRounds; i++) {
+    const winningCanvas = winningCanvases.find((c) => c.roundIndex === i);
+    if (winningCanvas) {
+      allRounds.push(winningCanvas);
+    } else {
+      // Add empty canvas entry for rounds with no winner
+      allRounds.push({
+        roundIndex: i,
+        word: lobbyInfo.lobby.word ?? "Unknown",
+        playerName: "No correct guesses",
+        playerId: null,
+        canvas: null,
+      });
+    }
+  }
 
   return (
     <div className="container game-end">
@@ -56,13 +75,15 @@ export default function GameEnd() {
         </div>
       )}
 
-      {/* Winning Canvases Gallery */}
-      {winningCanvases && winningCanvases.length > 0 && (
+      {/* All Rounds Gallery */}
+      {allRounds && allRounds.length > 0 && (
         <div className="winning-canvases-gallery">
-          <h2>Winning Drawings</h2>
+          <h2>All Rounds</h2>
           <div className="canvas-grid">
-            {winningCanvases.map((item, index) => (
-              <CanvasPreview key={index} canvasData={item} />
+            {allRounds.map((item, index) => (
+              <div key={index} className="canvas-item">
+                <CanvasPreview canvasData={item} />
+              </div>
             ))}
           </div>
         </div>
@@ -85,13 +106,16 @@ function CanvasPreview({ canvasData }) {
   const DISPLAY_HEIGHT = 250;
 
   useEffect(() => {
-    if (!canvasRef.current || !canvasData.canvas) return;
+    if (!canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // If no canvas data, just show white canvas
+    if (!canvasData || !canvasData.canvas) return;
 
     // Calculate scale factors
     const scaleX = DISPLAY_WIDTH / ORIGINAL_WIDTH;
@@ -120,7 +144,9 @@ function CanvasPreview({ canvasData }) {
   }, [canvasData]);
 
   return (
-    <div className="canvas-preview-card">
+    <div
+      className={`canvas-preview-card ${!canvasData.playerId ? "no-winner" : ""}`}
+    >
       <canvas ref={canvasRef} width={400} height={250} />
       <div className="canvas-info">
         <span className="round-label">Round {canvasData.roundIndex + 1}</span>

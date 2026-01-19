@@ -70,6 +70,7 @@ export async function handleStartGame({ context }) {
   // Initialize the random categories array fpr the lobby
   lobby.words = await getRandomWordsArray(categories, lobby.totalRounds);
   lobby.winningCanvases = [];
+  lobby.roundResults = []; // Track all rounds (with or without winners)
   lobby.roundIndex = 0;
 
   // Initialize round
@@ -368,6 +369,15 @@ function finishRound(
         `[${lobby.roundIndex}] Winning guess: [${winningGuess.playerId}, ${winningGuess.confidence}]`,
       );
     }
+  } else {
+    // Record round with no winner
+    lobby.winningCanvases.push({
+      roundIndex: lobby.roundIndex,
+      word: lobby.words[lobby.roundIndex],
+      playerName: "No correct guesses",
+      playerId: null,
+      canvas: null,
+    });
   }
 
   // Set a timeout to give the winner time to send their canvas

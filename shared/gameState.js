@@ -7,9 +7,9 @@ export const GameState = {
 };
 
 export const RoundLengths = {
-  START_ROUND_LEN: 3000,
-  ROUND_LEN: 20000,
-  END_ROUND_LEN: 3000,
+  START_ROUND_LEN: 300,
+  ROUND_LEN: 2000,
+  END_ROUND_LEN: 300,
 };
 
 // The percent confidence needed to instantly win a round
