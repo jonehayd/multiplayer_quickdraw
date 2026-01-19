@@ -135,15 +135,16 @@ export function handleGuess({ msg, context }) {
 
 export function handleWinningCanvas({ msg, context }) {
   const lobby = lobbies.get(context.currentLobbyId);
-  if (!lobby?.game?.roundWinnerId) return;
-  if (lobby.game.winningCanvas) return; // Already received
+  if (!lobby?.game) return;
+  if (lobby.state !== GameState.GAME && lobby.state !== GameState.ROUND_END)
+    return;
+
+  // Check if canvas was already received for this round
+  const alreadyHasCanvas = lobby.winningCanvases.some(
+    (c) => c.roundIndex === lobby.roundIndex,
+  );
+  if (alreadyHasCanvas) return;
   if (lobby.game.roundWinnerId !== context.currentUserId) return;
-
-  // Set winningCanvasReady to update UI
-  lobby.game.winningCanvasReady = true;
-
-  // Store canvas in game state for current round
-  lobby.game.winningCanvas = msg.canvas;
 
   // Add to collection of all winning canvases
   lobby.winningCanvases.push({
@@ -154,7 +155,7 @@ export function handleWinningCanvas({ msg, context }) {
     canvas: msg.canvas,
   });
 
-  console.log(`Received winning canvas for round ${lobby.roundIndex}`);
+  console.log(`[backend] Stored canvas for round ${lobby.roundIndex}`);
 
   // Cancel the wait timer and transition now
   if (lobby.game.canvasWaitTimer) {
@@ -165,7 +166,8 @@ export function handleWinningCanvas({ msg, context }) {
   broadcastLobbyUpdate(lobby);
 
   // Now transition to ROUND_END with the canvas
-  transitionLobbyState(lobby, GameState.ROUND_END);
+  if (lobby.state === GameState.GAME)
+    transitionLobbyState(lobby, GameState.ROUND_END);
 }
 
 // Canvas handlers
@@ -257,8 +259,6 @@ function startGamePhase(lobby) {
   lobby.game.roundWinner = null;
   lobby.game.roundWinnerId = null;
   lobby.game.roundFinished = false;
-  lobby.game.winningCanvas = null;
-  lobby.game.winningCanvasReady = false;
   lobby.game.canvasWaitTimer = null;
 
   lobby.game.roundTimer = setTimeout(() => {
@@ -269,16 +269,12 @@ function startGamePhase(lobby) {
 function startRoundEnd(lobby) {
   clearTimers(lobby);
 
-  console.log(
-    `[${lobby.roundIndex}] Winning canvas in startRoundEnd ${lobby.game.winningCanvas}`,
-  );
-
   lobby.game.endTimer = setTimeout(() => {
-    lobby.roundIndex++;
-
-    if (lobby.roundIndex < lobby.totalRounds) {
+    if (lobby.roundIndex + 1 < lobby.totalRounds) {
+      lobby.roundIndex++;
       transitionLobbyState(lobby, GameState.ROUND_START);
     } else {
+      lobby.roundIndex++;
       transitionLobbyState(lobby, GameState.GAME_END);
     }
   }, RoundLengths.END_ROUND_LEN);
@@ -376,8 +372,9 @@ function finishRound(
 
   // Set a timeout to give the winner time to send their canvas
   lobby.game.canvasWaitTimer = setTimeout(() => {
-    console.log(`Canvas wait timeout - transitioning without canvas`);
-    transitionLobbyState(lobby, GameState.ROUND_END);
+    if (lobby.state === GameState.GAME) {
+      transitionLobbyState(lobby, GameState.ROUND_END);
+    }
   }, 1000); // Wait 1 second for canvas
 
   // Broadcast immediately so winner knows to send canvas
