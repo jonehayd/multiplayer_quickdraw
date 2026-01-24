@@ -70,6 +70,9 @@ export default function Game() {
 
   // Send the winning canvas if winner
   useEffect(() => {
+    console.log(
+      `Round Winner Id: ${lobby.roundWinnerId}, My Id: ${lobbyInfo.userId}`,
+    );
     if (
       lobby?.roundWinnerId === lobbyInfo.userId &&
       winningCanvasStrokesRef.current &&
