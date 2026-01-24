@@ -60,7 +60,7 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
       console.log("WebSocket opened");
       ws.send(
         JSON.stringify({
-          type: "JOIN_LOBBY_SOCKET",
+          type: "JOIN_LOBBY",
           lobbyId: lobbyInfo.lobby.id,
           userId: lobbyInfo.userId,
         }),
@@ -72,6 +72,7 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
 
       switch (msg.type) {
         case "LOBBY_UPDATE":
+          console.log("Updating lobby");
           updateLobbyRef.current(msg.lobby);
           break;
 
