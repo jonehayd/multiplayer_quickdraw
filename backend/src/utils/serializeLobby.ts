@@ -18,7 +18,9 @@ export function serializeLobby(lobby: Lobby): LobbyData {
     roundWinner: lobby.game?.roundWinner ?? null,
     roundWinnerId: lobby.game?.roundWinnerId ?? null,
     winningGuess: lobby.game?.winningGuess ?? null,
-    winningCanvas: lobby.winningCanvases?.at(-1)?.canvas ?? null,
+    winningCanvas:
+      lobby.winningCanvases?.find((c) => c.roundIndex === lobby.roundIndex)
+        ?.canvas ?? null,
     winningCanvases: lobby.winningCanvases ?? [],
     createdAt: lobby.createdAt,
     phaseStartedAt: lobby.game?.phaseStartedAt ?? null,

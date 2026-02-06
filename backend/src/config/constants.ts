@@ -6,3 +6,5 @@ export const RoundLengths = {
 
 // The percent confidence needed to instantly win a round
 export const CONFIDENCE_THRESHOLD_CUTOFF = 80;
+
+export const MAX_LOBBY_CAPACITY = 4;

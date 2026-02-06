@@ -14,7 +14,7 @@ function broadcastToOtherPlayers(
 ) {
   players.forEach((player) => {
     if (player.id !== playerId && player.ws?.readyState === 1) {
-      player.ws.send(JSON.stringify({ msg }));
+      player.ws.send(JSON.stringify(msg));
     }
   });
 }
@@ -26,6 +26,7 @@ export function handleCanvasStroke({
   context: MessageContext;
   msg: CanvasStrokeMessage;
 }) {
+  console.log("handleCanvasStroke called");
   const { currentLobbyId, currentUserId } = context;
   if (!currentLobbyId || !currentUserId) return;
 

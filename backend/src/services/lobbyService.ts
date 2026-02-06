@@ -10,6 +10,7 @@ import {
 import {
   RoundLengths,
   CONFIDENCE_THRESHOLD_CUTOFF,
+  MAX_LOBBY_CAPACITY,
 } from "../config/constants.js";
 import { LobbyRepository } from "../repositories/index.js";
 import { CategoryService } from "./index.js";
@@ -50,23 +51,8 @@ export class LobbyService {
     const wasHost = leavingPlayer?.isHost;
 
     console.log(`Disconnecting player with id ${userId}`);
-    players.delete(userId);
 
-    // Destroy empty lobby
-    if (players.size === 0) {
-      console.log(`Deleted lobby with id: ${lobbyId}`);
-      this.lobbyRepo.deleteLobby(lobbyId);
-      return;
-    }
-
-    // Promote next player to host
-    if (wasHost) {
-      const nextPlayer = players.values().next().value;
-      if (nextPlayer) {
-        nextPlayer.isHost = true;
-        console.log(`Promoted ${nextPlayer.name} to host`);
-      }
-    }
+    this.removePlayer(lobbyId, userId);
 
     lobbyEvents.emitLobbyUpdate(lobby, LobbyEvent.PLAYER_LEFT);
   }
@@ -92,11 +78,8 @@ export class LobbyService {
       confidence,
     });
 
-    console.log(`[${lobby.roundIndex}] Guess confidence: ${confidence}`);
-
     // Instant win if confidence threshold met
     if (confidence >= CONFIDENCE_THRESHOLD_CUTOFF) {
-      console.log(`[${lobby.roundIndex}] Instant win at ${confidence}`);
       this.finishRound(lobby, userId, {
         playerId: userId,
         confidence,
@@ -116,26 +99,27 @@ export class LobbyService {
       return;
 
     // Check if already received for this round
-    const alreadyHasCanvas =
-      lobby.winningCanvases?.some((c) => c.roundIndex === lobby.roundIndex) ||
-      lobby.winningCanvasAlreadyReceived;
-    if (alreadyHasCanvas) return;
+    if (lobby.winningCanvasAlreadyReceived) return;
 
     if (game.roundWinnerId !== userId) return;
 
     // Store winning canvas
     if (!lobby.winningCanvases) lobby.winningCanvases = [];
-    lobby.winningCanvases.push({
-      playerId: userId,
-      roundIndex: lobby.roundIndex,
-      playerName: game.roundWinner,
-      word: lobby.words[lobby.roundIndex]!,
-      canvas: canvasData,
-    });
+    const index = lobby.winningCanvases.findIndex(
+      (c) => c.roundIndex === lobby.roundIndex,
+    );
+
+    if (index !== -1) {
+      lobby.winningCanvases[index] = {
+        playerId: userId,
+        roundIndex: lobby.roundIndex,
+        playerName: game.roundWinner,
+        word: lobby.words[lobby.roundIndex]!,
+        canvas: canvasData,
+      };
+    }
 
     lobby.winningCanvasAlreadyReceived = true;
-
-    console.log(`[backend] Stored canvas for round ${lobby.roundIndex}`);
 
     // Cancel wait timer and transition
     if (game.canvasWaitTimer) {
@@ -150,6 +134,47 @@ export class LobbyService {
     lobbyEvents.emitLobbyUpdate(lobby, LobbyEvent.GAME_UPDATED);
   }
 
+  isLobbyFull(lobbyId: string): boolean {
+    const lobby = this.lobbyRepo.getLobby(lobbyId);
+    if (!lobby) throw new Error("Lobby not found");
+    return lobby.players.size >= MAX_LOBBY_CAPACITY;
+  }
+
+  addPlayer(lobbyId: string, player: Player): void {
+    const lobby = this.lobbyRepo.getLobby(lobbyId);
+    if (!lobby) throw new Error("Lobby not found");
+    if (lobby.players.size >= MAX_LOBBY_CAPACITY) {
+      throw new Error("Lobby is full");
+    }
+    lobby.players.set(player.id, player);
+  }
+
+  removePlayer(lobbyId: string, userId: string): void {
+    const lobby = this.lobbyRepo.getLobby(lobbyId);
+    if (!lobby) throw new Error("Lobby not found");
+
+    const player = lobby.players.get(userId);
+    if (!player) throw new Error("Player not found in lobby");
+
+    const wasHost = player.isHost;
+
+    lobby.players.delete(userId);
+
+    if (lobby.players.size === 0) {
+      console.log(`Deleting empty lobby: ${lobbyId}`);
+      this.lobbyRepo.deleteLobby(lobbyId);
+      return;
+    }
+
+    // Promote the next player to host if the host left
+    if (wasHost) {
+      const nextPlayer = lobby.players.values().next().value as Player;
+      if (nextPlayer) {
+        nextPlayer.isHost = true;
+      }
+    }
+  }
+
   private finishRound(
     lobby: Lobby,
     instantWinnerId?: string,
@@ -158,7 +183,6 @@ export class LobbyService {
     if (lobby.state !== GameState.GAME) return;
     const game = this.requireGame(lobby);
     if (game.roundFinished) {
-      console.log("Round already finished");
       return;
     }
 
@@ -183,11 +207,19 @@ export class LobbyService {
       game.roundWinner = player.name;
       game.roundWinnerId = winnerId;
       game.winningGuess = winningGuess || null;
-
-      console.log(
-        `[${lobby.roundIndex}] Winner: ${player.name} (confidence: ${winningGuess?.confidence})`,
-      );
     }
+
+    if (!lobby.winningCanvases) lobby.winningCanvases = [];
+
+    lobby.winningCanvases.push({
+      playerId: game.roundWinnerId ?? null,
+      roundIndex: lobby.roundIndex,
+      playerName: game.roundWinner ?? null,
+      word: lobby.words[lobby.roundIndex],
+      canvas: [], // placeholder
+    });
+
+    lobby.winningCanvasAlreadyReceived = false;
 
     // Immediately broadcast lobby to have time to send winning canvas
     lobbyEvents.emitLobbyUpdate(lobby, LobbyEvent.GAME_UPDATED);
@@ -237,8 +269,6 @@ export class LobbyService {
     this.clearTimers(lobby);
     const game = this.requireGame(lobby);
 
-    console.log(`Starting round ${lobby.roundIndex} in lobby ${lobby.id}`);
-
     lobby.winningCanvasAlreadyReceived = false;
     game.roundWinner = null;
     game.winningGuess = null;
@@ -268,18 +298,6 @@ export class LobbyService {
     const game = this.requireGame(lobby);
 
     game.endTimer = setTimeout(() => {
-      // If no canvas received, add empty canvas entry
-      if (lobby.winningCanvasAlreadyReceived === false) {
-        lobby.winningCanvases?.push({
-          playerId: null,
-          roundIndex: lobby.roundIndex,
-          playerName: null,
-          word: lobby.words[lobby.roundIndex],
-          canvas: [],
-        });
-      }
-      lobby.winningCanvasAlreadyReceived = true;
-
       if (lobby.roundIndex + 1 < lobby.totalRounds) {
         lobby.roundIndex++;
         this.transitionState(lobby, GameState.ROUND_START);

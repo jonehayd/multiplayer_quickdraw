@@ -17,7 +17,7 @@ const handlers: Record<string, Function> = {
   START_GAME: handleStartGame,
   GUESS: handleGuess,
   WINNING_CANVAS: handleWinningCanvas,
-  CANVAS_STROKE_UPDATE: handleCanvasStroke,
+  CANVAS_STROKE: handleCanvasStroke,
   CANVAS_UNDO: handleCanvasUndo,
   CANVAS_CLEAR: handleCanvasClear,
 };
@@ -25,7 +25,6 @@ const handlers: Record<string, Function> = {
 export function setupWebSockets(wss: WebSocketServer) {
   // Global listener for sending lobby updates
   lobbyEvents.on(LobbyEvent.STATE_CHANGED, (lobby) => {
-    console.log(`${lobby.id} Lobby state changed, broadcasting update`);
     broadcastLobbyUpdate(lobby);
   });
 
