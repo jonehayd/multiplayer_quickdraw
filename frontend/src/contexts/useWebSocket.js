@@ -76,8 +76,9 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
           updateLobbyRef.current(msg.lobby);
           break;
 
-        case "CANVAS_STROKE_UPDATE":
+        case "CANVAS_STROKE":
           // Handle both in progress and completed strokes
+          console.log("Recieving canvas stroke");
           applyCanvasUpdateRef.current(
             msg.playerId,
             msg.stroke,

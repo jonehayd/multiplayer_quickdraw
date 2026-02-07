@@ -116,7 +116,7 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
 
     // Send initial stroke start
     send({
-      type: "CANVAS_STROKE_UPDATE",
+      type: "CANVAS_STROKE",
       lobbyId: lobbyInfo.lobby.id,
       playerId: lobbyInfo.userId,
       stroke: stroke,
@@ -151,7 +151,7 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
       lastUpdateTimeRef.current = now;
 
       send({
-        type: "CANVAS_STROKE_UPDATE",
+        type: "CANVAS_STROKE",
         lobbyId: lobbyInfo.lobby.id,
         playerId: lobbyInfo.userId,
         stroke: { ...stroke }, // Send a copy
@@ -176,7 +176,7 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
 
     // Send FINAL stroke to server
     send({
-      type: "CANVAS_STROKE_UPDATE",
+      type: "CANVAS_STROKE",
       lobbyId: lobbyInfo.lobby.id,
       playerId: lobbyInfo.userId,
       stroke: currentStrokeRef.current,
@@ -184,12 +184,12 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
     });
 
     currentStrokeRef.current = null;
-    
+
     // Notify parent that stroke is done
     if (onCurrentStroke) {
       onCurrentStroke(null);
     }
-    
+
     setIsDrawing(false);
   }
 

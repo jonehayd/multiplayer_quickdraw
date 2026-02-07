@@ -29,8 +29,14 @@ export default function TestGameEnd() {
     noPlayers: [],
   };
 
-  const lobbyInfo = {
+  const lobby = {
     players: testCases[testCase],
+    winningCanvases: [],
+  };
+
+  const lobbyInfo = {
+    userId: "filler",
+    lobby: lobby,
   };
 
   const leaveLobby = () => alert("Back to lobby clicked!");
