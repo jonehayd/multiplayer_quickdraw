@@ -14,6 +14,6 @@ export interface Prediction {
 
 // The winning guess of a player
 export interface Guess {
-  confidence: any;
+  confidence: number;
   playerId: string | undefined;
 }

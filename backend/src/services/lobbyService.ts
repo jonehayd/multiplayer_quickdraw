@@ -216,7 +216,7 @@ export class LobbyService {
       roundIndex: lobby.roundIndex,
       playerName: game.roundWinner ?? null,
       word: lobby.words[lobby.roundIndex],
-      canvas: [], // placeholder
+      canvas: null, // placeholder
     });
 
     lobby.winningCanvasAlreadyReceived = false;

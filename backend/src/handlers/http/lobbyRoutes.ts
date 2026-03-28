@@ -1,3 +1,4 @@
+import { Request, Response } from "express";
 import { lobbyRepository } from "../../repositories/index.js";
 import { GameState } from "../../types/game.js";
 import { Lobby } from "../../types/lobby.js";
@@ -7,11 +8,14 @@ import {
   createUserId,
 } from "../../utils/ids.js";
 import { serializeLobby } from "../../utils/serializeLobby.js";
+import { MAX_LOBBY_CAPACITY } from "../../config/constants.js";
 
-export function createLobby(req: any, res: any): void {
+export function createLobby(req: Request, res: Response): void {
   let { displayName, isPublic, totalRounds } = req.body;
-  if (!displayName || typeof displayName !== "string")
-    return res.status(400).json({ error: "Display name required" });
+  if (!displayName || typeof displayName !== "string") {
+    res.status(400).json({ error: "Display name required" });
+    return;
+  }
 
   // Default public
   if (isPublic === undefined) isPublic = true;
@@ -28,8 +32,6 @@ export function createLobby(req: any, res: any): void {
   } while (lobbyRepository.inviteCodeExists(inviteCode));
 
   const userId = createUserId();
-
-  console.log(inviteCode);
 
   const lobby: Lobby = {
     id: lobbyId,
@@ -56,12 +58,28 @@ export function createLobby(req: any, res: any): void {
   });
 }
 
-export function joinLobby(req: any, res: any): void {
-  let { displayName, inviteCode } = req.body;
+export function joinLobby(req: Request, res: Response): void {
+  const { displayName, inviteCode } = req.body;
+
+  if (!displayName || typeof displayName !== "string") {
+    res.status(400).json({ error: "Display name required" });
+    return;
+  }
 
   const lobby = lobbyRepository.getLobbyByInviteCode(inviteCode);
   if (!lobby) {
-    return res.status(404).json({ error: "Lobby not found" });
+    res.status(404).json({ error: "Lobby not found" });
+    return;
+  }
+
+  if (lobby.state !== GameState.LOBBY) {
+    res.status(409).json({ error: "Game already in progress" });
+    return;
+  }
+
+  if (lobby.players.size >= MAX_LOBBY_CAPACITY) {
+    res.status(409).json({ error: "Lobby is full" });
+    return;
   }
 
   const userId = createUserId();
@@ -80,13 +98,22 @@ export function joinLobby(req: any, res: any): void {
   });
 }
 
-export function joinRandomLobby(req: any, res: any): void {
-  let { displayName } = req.body;
+export function joinRandomLobby(req: Request, res: Response): void {
+  const { displayName } = req.body;
+
+  if (!displayName || typeof displayName !== "string") {
+    res.status(400).json({ error: "Display name required" });
+    return;
+  }
 
   const publicLobbies = lobbyRepository.getPublicLobbies();
-  const lobby = publicLobbies.find((lobby) => lobby.state === GameState.LOBBY);
-  if (!lobby)
-    return res.status(404).json({ error: "No public lobbies available" });
+  const lobby = publicLobbies.find(
+    (lobby) => lobby.state === GameState.LOBBY && lobby.players.size < MAX_LOBBY_CAPACITY
+  );
+  if (!lobby) {
+    res.status(404).json({ error: "No public lobbies available" });
+    return;
+  }
 
   const userId = createUserId();
   lobby.players.set(userId, {

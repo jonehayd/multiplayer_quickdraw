@@ -11,8 +11,8 @@ export interface Player {
 }
 
 export interface Game {
-  roundFinished: any;
-  canvasWaitTimer: any;
+  roundFinished: boolean;
+  canvasWaitTimer: NodeJS.Timeout | null;
   phaseStartedAt: number | null;
   phaseDuration: number | null;
   roundWinnerId: string | null;
