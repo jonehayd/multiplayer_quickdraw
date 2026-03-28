@@ -307,7 +307,9 @@ describe("LobbyService", () => {
 
       lobbyService.handleWinningCanvas(mockLobby, "player-2", canvasData);
 
-      expect(mockLobby.winningCanvases).toHaveLength(0);
+      // beforeEach already pushed a placeholder via instant-win; non-winner should not add another
+      expect(mockLobby.winningCanvases).toHaveLength(1);
+      expect(mockLobby.winningCanvases![0].canvas).toBeNull();
     });
 
     it("should not store duplicate canvas for same round", () => {
