@@ -1,8 +1,12 @@
 # Quick Draw Battle
 
+_Note: the backend uses Render free-tier, so the UI may not respond for around a minute if the server needs to be spinned up_
 **Live demo:** [multiplayer-quickdraw.vercel.app](https://multiplayer-quickdraw.vercel.app)
 
-<!-- Replace this comment with a demo video or gif when ready -->
+## Demo Video
+
+This video shows a full playthrough. Two separate tabs are used to demonstrate multiplayer.
+[![Demo Video](https://img.youtube.com/vi/S4r99zobvcM/maxresdefault.jpg)](https://www.youtube.com/watch?v=S4r99zobvcM)
 
 ## What is it?
 
