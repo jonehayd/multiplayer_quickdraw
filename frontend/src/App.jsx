@@ -7,7 +7,7 @@ import StartRound from "./components/start-round";
 import RoundEnd from "./components/end-round";
 import GameEnd from "./components/game-end";
 import { GameState } from "../../shared/gameState";
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from "@vercel/analytics/react";
 import "./App.css";
 
 function AppContent() {
