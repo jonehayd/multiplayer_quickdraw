@@ -3,6 +3,8 @@ import { useLobbyContext } from "../../../contexts/LobbyContext";
 
 const MAIN_CANVAS_WIDTH = 800;
 const MAIN_CANVAS_HEIGHT = 500;
+const SIDE_CANVAS_WIDTH = 400;
+const SIDE_CANVAS_HEIGHT = 250;
 
 export default function SideViewCanvas() {
   const { lobbyInfo, drawingsByPlayer, inProgressStrokesRef } =
@@ -89,8 +91,8 @@ export default function SideViewCanvas() {
             ref={(el) => {
               if (el) canvasRefs.current[player.id] = el;
             }}
-            width={128}
-            height={128}
+            width={SIDE_CANVAS_WIDTH}
+            height={SIDE_CANVAS_HEIGHT}
           />
           <span className="player-label">{player.name}</span>
         </div>
