@@ -2,11 +2,11 @@ import { useState, useRef, useCallback } from "react";
 
 export function useCanvas() {
   const [drawingsByPlayer, setDrawingsByPlayer] = useState({});
-  const inProgressStrokesRef = useRef({}); // Track incomplete strokes
+  const inProgressStrokesRef = useRef({}); // strokes that have started but not yet been committed
 
   const applyCanvasUpdate = useCallback((playerId, stroke, isComplete) => {
     if (isComplete) {
-      // Finalize the stroke - add to completed strokes
+      // The stroke is done, move it from in-progress to the committed list
       setDrawingsByPlayer((prev) => {
         const playerStrokes = prev[playerId] || [];
         return {
@@ -14,12 +14,10 @@ export function useCanvas() {
           [playerId]: [...playerStrokes, stroke],
         };
       });
-      // Remove from in-progress
       delete inProgressStrokesRef.current[playerId];
     } else {
-      // Store in-progress stroke for live rendering
+      // Store the partial stroke so the canvas can render it live
       inProgressStrokesRef.current[playerId] = stroke;
-      // Force re-render by updating state
       setDrawingsByPlayer((prev) => ({ ...prev }));
     }
   }, []);
@@ -31,7 +29,7 @@ export function useCanvas() {
 
       return {
         ...prev,
-        [playerId]: playerStrokes.slice(0, -1), // Remove last stroke
+        [playerId]: playerStrokes.slice(0, -1),
       };
     });
   }, []);

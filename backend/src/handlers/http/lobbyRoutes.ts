@@ -17,10 +17,8 @@ export function createLobby(req: Request, res: Response): void {
     return;
   }
 
-  // Default public
   if (isPublic === undefined) isPublic = true;
 
-  // Default to 9 rounds if number not specified
   if (!totalRounds) {
     totalRounds = 9;
   }

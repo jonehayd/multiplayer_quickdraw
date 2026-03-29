@@ -26,7 +26,7 @@ export default function Game() {
     initInference();
   }, []);
 
-  // Callback to receive current in-progress stroke from MainPlayerCanvas
+  // Receive the in-progress stroke from the canvas so we can include it in the winning canvas snapshot
   const onCurrentStroke = useCallback((stroke) => {
     currentStrokeRef.current = stroke;
   }, []);
@@ -41,12 +41,12 @@ export default function Game() {
       // Get current canvas strokes from context
       const currentCanvasStrokes = drawingsByPlayer[lobbyInfo.userId] || [];
 
-      // Keep track of the highest confidence correct canvas to send at round end
+      // Track the highest-confidence correct frame so we can send the best canvas at round end
       const correct = results.find((p) => p.label === lobby?.word);
       if (correct && correct.confidence > highestConfidence.current) {
         highestConfidence.current = correct.confidence;
 
-        // Capture committed strokes plus current in-progress stroke if it exists
+        // Include the current in-progress stroke if one exists, since it may not be committed yet
         const strokesToCapture = [...currentCanvasStrokes];
         if (currentStrokeRef.current) {
           strokesToCapture.push(currentStrokeRef.current);
@@ -68,24 +68,14 @@ export default function Game() {
     [phase, drawingsByPlayer, lobbyInfo.userId, send, lobby.word],
   );
 
-  // Send the winning canvas if winner
+  // Send the winning canvas once the server has declared this player as the round winner
   useEffect(() => {
-    console.log(
-      `Round Winner Id: ${lobby.roundWinnerId}, My Id: ${lobbyInfo.userId}`,
-    );
     if (
       lobby?.roundWinnerId === lobbyInfo.userId &&
       winningCanvasStrokesRef.current &&
       !winningCanvasSentRef.current
     ) {
       winningCanvasSentRef.current = true;
-
-      console.log(
-        `[Frontend] Sending winning canvas for round ${lobby.roundIndex}`,
-      );
-      console.log(
-        `[Frontend] Canvas has ${winningCanvasStrokesRef.current.length} strokes`,
-      );
 
       send({
         type: "WINNING_CANVAS",
@@ -94,7 +84,7 @@ export default function Game() {
     }
   }, [lobby.roundIndex, lobby?.roundWinnerId, lobbyInfo.userId, send]);
 
-  // Reset refs between rounds
+  // Reset per-round tracking state when the round index changes
   useEffect(() => {
     highestConfidence.current = 0;
     winningCanvasStrokesRef.current = null;
@@ -105,7 +95,7 @@ export default function Game() {
 
   return (
     <div className="game-page">
-      {/* Top HUD */}
+      {/* Header: timer, current word, and leave button */}
       <div className="game-header">
         <div className="game-timer">
           <span className="timer-number">{secondsLeft}</span>
@@ -122,9 +112,9 @@ export default function Game() {
         </button>
       </div>
 
-      {/* Main content — three columns */}
+      {/* Three-column layout: scores, canvas, other players */}
       <div className="game-body">
-        {/* Left sidebar: scores + AI guesses */}
+        {/* Left sidebar: scores and AI guesses */}
         <aside className="game-sidebar left">
           <div className="sidebar-panel">
             <h3 className="panel-title">Players</h3>
@@ -137,7 +127,7 @@ export default function Game() {
           </div>
         </aside>
 
-        {/* Center: drawing canvas */}
+        {/* Center column: the drawing canvas */}
         <div className="game-center">
           <MainPlayerCanvas
             onStroke={handleStroke}
@@ -145,7 +135,7 @@ export default function Game() {
           />
         </div>
 
-        {/* Right sidebar: other players' canvases */}
+        {/* Right sidebar: small live canvases for other players */}
         <aside className="game-sidebar right">
           <div className="sidebar-panel">
             <h3 className="panel-title">Other Players</h3>

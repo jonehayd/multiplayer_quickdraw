@@ -1,4 +1,3 @@
-// src/events/lobbyEvents.ts
 import { EventEmitter } from "events";
 import { Lobby } from "../types/index.js";
 

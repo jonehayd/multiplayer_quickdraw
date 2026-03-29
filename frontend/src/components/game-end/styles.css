@@ -1,4 +1,4 @@
-/* ── Page ─────────────────────────────────────────────────── */
+/* Page */
 .game-end-page {
   display: flex;
   flex-direction: column;
@@ -22,7 +22,7 @@
   margin: 0 0 0.5rem;
 }
 
-/* ── Podium ───────────────────────────────────────────────── */
+/* Podium */
 .podium {
   display: flex;
   justify-content: center;
@@ -73,7 +73,7 @@
   vertical-align: middle;
 }
 
-/* ── Leaderboard ──────────────────────────────────────────── */
+/* Leaderboard */
 .leaderboard {
   width: 320px;
   background: var(--bg-panel);
@@ -112,7 +112,7 @@
   color: var(--accent);
 }
 
-/* ── Gallery section ──────────────────────────────────────── */
+/* Gallery section */
 .gallery-section {
   width: 100%;
   max-width: 900px;
@@ -195,7 +195,7 @@
   transform: scale(1);
 }
 
-/* ── Canvas card ──────────────────────────────────────────── */
+/* Canvas card */
 .canvas-card {
   background: var(--bg-panel);
   border-radius: var(--radius-md);
@@ -254,7 +254,7 @@
   color: var(--text-secondary);
 }
 
-/* ── Back button ──────────────────────────────────────────── */
+/* Back button */
 .back-to-lobby-btn {
   margin-top: 2rem;
   padding: 0.75rem 2.5rem;
@@ -273,8 +273,20 @@
   transform: scale(1.03);
 }
 
-/* ── Responsive ───────────────────────────────────────────── */
+/* Responsive */
 @media (max-width: 600px) {
+  .game-end-page {
+    padding: 1rem 0.75rem;
+  }
+
+  .game-end-panel {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .game-end-title {
+    font-size: 1.6rem;
+  }
+
   .podium {
     gap: 0.75rem;
   }
@@ -287,7 +299,22 @@
     width: 90%;
   }
 
+  .gallery-track {
+    grid-template-columns: 1fr;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+
+  .canvas-item:not(.active) {
+    display: none;
+  }
+
   .canvas-card {
-    width: 300px;
+    width: 100%;
+  }
+
+  .back-to-lobby-btn {
+    padding: 0.65rem 2rem;
+    font-size: 0.9rem;
   }
 }

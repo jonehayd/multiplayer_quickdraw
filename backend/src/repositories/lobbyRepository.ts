@@ -2,7 +2,7 @@ import { Lobby } from "../types/index.js";
 
 export class LobbyRepository {
   private lobbies = new Map<string, Lobby>();
-  private inviteCodeMap = new Map<string, string>(); // inviteCode -> lobbyId
+  private inviteCodeMap = new Map<string, string>(); // maps invite codes to lobby IDs
 
   createLobby(lobby: Lobby): void {
     this.lobbies.set(lobby.id, lobby);

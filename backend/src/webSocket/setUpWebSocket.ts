@@ -23,7 +23,7 @@ const handlers: Record<string, Function> = {
 };
 
 export function setupWebSockets(wss: WebSocketServer) {
-  // Global listener for sending lobby updates
+  // Whenever any part of the service emits a state change, push the updated lobby to all connected clients
   lobbyEvents.on(LobbyEvent.STATE_CHANGED, (lobby) => {
     broadcastLobbyUpdate(lobby);
   });
@@ -38,8 +38,7 @@ export function setupWebSockets(wss: WebSocketServer) {
       let msg: any;
       try {
         msg = JSON.parse(data.toString());
-      } catch (e) {
-        console.log("Invalid JSON message received:", data);
+      } catch {
         return;
       }
 

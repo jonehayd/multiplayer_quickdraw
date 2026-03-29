@@ -35,7 +35,6 @@ export class LobbyService {
     if (!player?.isHost) throw new Error("Only host can start game");
     if (lobby.players.size < 2) throw new Error("Need at least 2 players");
 
-    // Initialize words and game state
     lobby.words = await this.categoryService.getRandomWords(lobby.totalRounds);
     lobby.roundIndex = 0;
     lobby.game = this.initializeGame();
@@ -55,11 +54,11 @@ export class LobbyService {
 
     console.log(`Disconnecting player with id ${userId}`);
 
-    // Null out the WebSocket immediately so other clients see them as offline
+    // Null out the WebSocket right away so other clients see the player as offline,
+    // but don't remove them yet, give them a chance to reconnect.
     player.ws = null;
     lobbyEvents.emitLobbyUpdate(lobby, LobbyEvent.PLAYER_LEFT);
 
-    // Defer actual removal to allow reconnection within the grace period
     const timerKey = `${lobbyId}:${userId}`;
     const existing = this.disconnectTimers.get(timerKey);
     if (existing) clearTimeout(existing);
@@ -103,7 +102,7 @@ export class LobbyService {
     const confidence = Number(correctPrediction.confidence);
     if (Number.isNaN(confidence)) throw new Error("Invalid confidence value");
 
-    // Double-check round not finished (race condition)
+    // Guard against a race condition where two guesses arrive at the same time
     if (game.roundFinished) throw new Error("Cannot submit guess - round over");
 
     game.guesses.push({
@@ -111,7 +110,6 @@ export class LobbyService {
       confidence,
     });
 
-    // Instant win if confidence threshold met
     if (confidence >= CONFIDENCE_THRESHOLD_CUTOFF) {
       this.finishRound(lobby, userId, {
         playerId: userId,
@@ -131,12 +129,10 @@ export class LobbyService {
     if (lobby.state !== GameState.GAME && lobby.state !== GameState.ROUND_END)
       return;
 
-    // Check if already received for this round
     if (lobby.winningCanvasAlreadyReceived) return;
 
     if (game.roundWinnerId !== userId) return;
 
-    // Store winning canvas
     if (!lobby.winningCanvases) lobby.winningCanvases = [];
     const index = lobby.winningCanvases.findIndex(
       (c) => c.roundIndex === lobby.roundIndex,
@@ -154,7 +150,7 @@ export class LobbyService {
 
     lobby.winningCanvasAlreadyReceived = true;
 
-    // Cancel wait timer and transition
+    // Cancel the fallback timer since the canvas arrived in time
     if (game.canvasWaitTimer) {
       clearTimeout(game.canvasWaitTimer);
       game.canvasWaitTimer = null;
@@ -199,7 +195,7 @@ export class LobbyService {
       return;
     }
 
-    // Promote the next player to host if the host left
+    // Hand host status to the next player in the map when the host leaves
     if (wasHost) {
       const nextPlayer = lobby.players.values().next().value as Player;
       if (nextPlayer) {
@@ -225,7 +221,7 @@ export class LobbyService {
     let winnerId = instantWinnerId;
     let winningGuess = instantWinningGuess;
 
-    // Find highest confidence if no instant winner
+    // If nobody hit the confidence threshold, award the round to whoever had the best guess
     if (!winnerId && game.guesses.length > 0) {
       game.guesses.sort((a, b) => b.confidence - a.confidence);
       winnerId = game.guesses[0]!.playerId;
@@ -244,20 +240,21 @@ export class LobbyService {
 
     if (!lobby.winningCanvases) lobby.winningCanvases = [];
 
+    // Placeholder entry — the actual canvas data arrives shortly afterward via WINNING_CANVAS
     lobby.winningCanvases.push({
       playerId: game.roundWinnerId ?? null,
       roundIndex: lobby.roundIndex,
       playerName: game.roundWinner ?? null,
       word: lobby.words[lobby.roundIndex],
-      canvas: null, // placeholder
+      canvas: null,
     });
 
     lobby.winningCanvasAlreadyReceived = false;
 
-    // Immediately broadcast lobby to have time to send winning canvas
+    // Broadcast immediately so clients know the round is over while we wait for the canvas
     lobbyEvents.emitLobbyUpdate(lobby, LobbyEvent.GAME_UPDATED);
 
-    // Set timeout for winner to send canvas
+    // Give the winner a short window to send their canvas before we move on anyway
     game.canvasWaitTimer = setTimeout(() => {
       if (lobby.state === GameState.GAME) {
         this.transitionState(lobby, GameState.ROUND_END);

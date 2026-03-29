@@ -22,7 +22,8 @@ export function useLobby() {
     return data;
   }
 
-  // On mount, attempt to restore a previous session on genuine page reloads only.
+  // On mount, try to restore a previous session, but only on a genuine page reload.
+  // Tab duplications also trigger mount, so we use the navigation timing API to tell them apart.
   useEffect(() => {
     const saved = sessionStorage.getItem(STORAGE_KEY);
     if (!saved) return;

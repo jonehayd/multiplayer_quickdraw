@@ -9,8 +9,8 @@ const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 500;
 const BRUSH_SIZE = 15;
 const ERASER_SIZE = 15;
-const STROKE_UPDATE_INTERVAL = 50; // Send updates every 50ms while drawing
-const PREDICTION_INTERVAL = 500; // Send prediction results every 500 ms
+const STROKE_UPDATE_INTERVAL = 50; // how often to send in-progress stroke updates to the server (ms)
+const PREDICTION_INTERVAL = 500; // how often to run the AI prediction while drawing (ms)
 
 export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
   const {
@@ -22,14 +22,14 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
   } = useLobbyContext();
   const canvasRef = useRef(null);
   const ctxRef = useRef(null);
-  const strokesRef = useRef([]); // all committed strokes
+  const strokesRef = useRef([]); // committed strokes used to redraw the canvas
   const currentStrokeRef = useRef(null);
   const previewCanvasRef = useRef(null);
   const lastUpdateTimeRef = useRef(0);
   const canvasDirtyRef = useRef(false);
   const predictionTimerRef = useRef(null);
 
-  const [tool, setTool] = useState("pen"); // "pen" | "eraser"
+  const [tool, setTool] = useState("pen"); // current tool: "pen" or "eraser"
   const [isDrawing, setIsDrawing] = useState(false);
   const [mousePos, setMousePos] = useState(null);
 
@@ -51,15 +51,19 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
     ctx.closePath();
   }
 
-  function getMousePos(e) {
+  function getPointerPos(e) {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
+    // The canvas element is CSS-scaled so we need to map screen coordinates back to canvas coordinates
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
     return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY,
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
     };
   }
 
@@ -95,7 +99,7 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
   }
 
   function startDrawing(e) {
-    const { x, y } = getMousePos(e);
+    const { x, y } = getPointerPos(e);
     setMousePos({ x, y });
 
     const stroke = {
@@ -125,7 +129,7 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
   }
 
   function draw(e) {
-    const { x, y } = getMousePos(e);
+    const { x, y } = getPointerPos(e);
     setMousePos({ x, y });
 
     if (!isDrawing || !currentStrokeRef.current) return;
@@ -154,7 +158,7 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
         type: "CANVAS_STROKE",
         lobbyId: lobbyInfo.lobby.id,
         playerId: lobbyInfo.userId,
-        stroke: { ...stroke }, // Send a copy
+        stroke: { ...stroke },
         isComplete: false,
       });
     }
@@ -174,18 +178,17 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
     // Add stroke to context so it's available for sending later
     applyCanvasUpdate(lobbyInfo.userId, currentStrokeRef.current, true);
 
-    // Send FINAL stroke to server
+    // Send the completed stroke to the server and let other players see it
     send({
       type: "CANVAS_STROKE",
       lobbyId: lobbyInfo.lobby.id,
       playerId: lobbyInfo.userId,
       stroke: currentStrokeRef.current,
-      isComplete: true, // Mark as complete
+      isComplete: true,
     });
 
     currentStrokeRef.current = null;
 
-    // Notify parent that stroke is done
     if (onCurrentStroke) {
       onCurrentStroke(null);
     }
@@ -339,6 +342,18 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
             if (isDrawing) stopDrawing();
             setIsDrawing(false);
             clearPreview();
+          }}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            startDrawing(e);
+          }}
+          onTouchMove={(e) => {
+            e.preventDefault();
+            draw(e);
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            stopDrawing();
           }}
         />
       </div>
