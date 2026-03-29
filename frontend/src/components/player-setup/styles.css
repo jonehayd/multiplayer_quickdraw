@@ -178,3 +178,45 @@ input:focus {
   color: var(--danger);
   font-size: 0.9rem;
 }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .setup-panel {
+    padding: 1.5rem 1rem;
+  }
+
+  .heading h1 {
+    font-size: 1.6rem;
+  }
+
+  .heading h6 {
+    font-size: 0.85rem;
+  }
+
+  .icon-wrapper {
+    width: 56px;
+    height: 56px;
+  }
+
+  .icon-wrapper svg {
+    font-size: 2rem;
+  }
+
+  .lobby-actions {
+    gap: 1rem;
+  }
+
+  .lobby-section {
+    min-width: 0;
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .how-to-play {
+    max-width: 100%;
+  }
+}

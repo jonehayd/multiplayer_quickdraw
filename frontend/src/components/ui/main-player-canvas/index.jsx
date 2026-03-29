@@ -51,15 +51,19 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
     ctx.closePath();
   }
 
-  function getMousePos(e) {
+  function getPointerPos(e) {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
+    // Use first touch for touch events, otherwise mouse
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
     return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY,
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
     };
   }
 
@@ -95,7 +99,7 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
   }
 
   function startDrawing(e) {
-    const { x, y } = getMousePos(e);
+    const { x, y } = getPointerPos(e);
     setMousePos({ x, y });
 
     const stroke = {
@@ -125,7 +129,7 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
   }
 
   function draw(e) {
-    const { x, y } = getMousePos(e);
+    const { x, y } = getPointerPos(e);
     setMousePos({ x, y });
 
     if (!isDrawing || !currentStrokeRef.current) return;
@@ -339,6 +343,18 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
             if (isDrawing) stopDrawing();
             setIsDrawing(false);
             clearPreview();
+          }}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            startDrawing(e);
+          }}
+          onTouchMove={(e) => {
+            e.preventDefault();
+            draw(e);
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            stopDrawing();
           }}
         />
       </div>

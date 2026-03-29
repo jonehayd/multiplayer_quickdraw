@@ -108,3 +108,34 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .round-end {
+    padding: 1rem;
+  }
+
+  .round-end-panel {
+    padding: 1.5rem 1rem;
+  }
+
+  .winner-card {
+    min-width: 0;
+    width: 100%;
+    padding: 1.5rem 1rem;
+    box-sizing: border-box;
+  }
+
+  .winner-name {
+    font-size: 1.6rem;
+  }
+
+  .countdown-number {
+    font-size: 3rem;
+  }
+
+  .winning-canvas {
+    max-width: 100%;
+    height: auto;
+  }
+}

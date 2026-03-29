@@ -275,6 +275,18 @@
 
 /* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 600px) {
+  .game-end-page {
+    padding: 1rem 0.75rem;
+  }
+
+  .game-end-panel {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .game-end-title {
+    font-size: 1.6rem;
+  }
+
   .podium {
     gap: 0.75rem;
   }
@@ -287,7 +299,22 @@
     width: 90%;
   }
 
+  .gallery-track {
+    grid-template-columns: 1fr;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+
+  .canvas-item:not(.active) {
+    display: none;
+  }
+
   .canvas-card {
-    width: 300px;
+    width: 100%;
+  }
+
+  .back-to-lobby-btn {
+    padding: 0.65rem 2rem;
+    font-size: 0.9rem;
   }
 }

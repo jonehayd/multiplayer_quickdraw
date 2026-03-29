@@ -81,3 +81,26 @@
 .start-round-error {
   opacity: 0.7;
 }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .start-round {
+    padding: 1rem;
+  }
+
+  .round-panel {
+    padding: 1.5rem 1rem;
+  }
+
+  .word {
+    font-size: 2rem;
+  }
+
+  .word-card {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .countdown-number {
+    font-size: 3rem;
+  }
+}
