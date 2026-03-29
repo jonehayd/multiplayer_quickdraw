@@ -45,11 +45,13 @@ export function setupWebSockets(wss: WebSocketServer) {
 
       const handler = handlers[msg.type];
       if (handler) {
-        try {
-          handler({ context, ws, msg });
-        } catch (e) {
-          console.log(`Error handling message ${msg.type}: `, e);
-        }
+        (async () => {
+          try {
+            await handler({ context, ws, msg });
+          } catch (e) {
+            console.log(`Error handling message ${msg.type}: `, e);
+          }
+        })();
       }
     });
 

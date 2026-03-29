@@ -16,7 +16,11 @@ import { LobbyRepository } from "../repositories/index.js";
 import { CategoryService } from "./index.js";
 import { lobbyEvents, LobbyEvent } from "../events/lobbyEvents.js";
 
+const DISCONNECT_GRACE_MS = 30_000;
+
 export class LobbyService {
+  private disconnectTimers = new Map<string, NodeJS.Timeout>();
+
   constructor(
     private lobbyRepo: LobbyRepository,
     private categoryService: CategoryService,
@@ -46,15 +50,44 @@ export class LobbyService {
     const lobby = this.lobbyRepo.getLobby(lobbyId);
     if (!lobby) throw new Error("Cannot delete a lobby that does not exist");
 
-    const players = lobby.players;
-    const leavingPlayer = players.get(userId);
-    const wasHost = leavingPlayer?.isHost;
+    const player = lobby.players.get(userId);
+    if (!player) return;
 
     console.log(`Disconnecting player with id ${userId}`);
 
-    this.removePlayer(lobbyId, userId);
-
+    // Null out the WebSocket immediately so other clients see them as offline
+    player.ws = null;
     lobbyEvents.emitLobbyUpdate(lobby, LobbyEvent.PLAYER_LEFT);
+
+    // Defer actual removal to allow reconnection within the grace period
+    const timerKey = `${lobbyId}:${userId}`;
+    const existing = this.disconnectTimers.get(timerKey);
+    if (existing) clearTimeout(existing);
+
+    const timer = setTimeout(() => {
+      this.disconnectTimers.delete(timerKey);
+      const stillInLobby = this.lobbyRepo
+        .getLobby(lobbyId)
+        ?.players.get(userId);
+      if (stillInLobby?.ws === null) {
+        this.removePlayer(lobbyId, userId);
+        const updatedLobby = this.lobbyRepo.getLobby(lobbyId);
+        if (updatedLobby) {
+          lobbyEvents.emitLobbyUpdate(updatedLobby, LobbyEvent.PLAYER_LEFT);
+        }
+      }
+    }, DISCONNECT_GRACE_MS);
+
+    this.disconnectTimers.set(timerKey, timer);
+  }
+
+  cancelDisconnectTimer(lobbyId: string, userId: string): void {
+    const timerKey = `${lobbyId}:${userId}`;
+    const timer = this.disconnectTimers.get(timerKey);
+    if (timer) {
+      clearTimeout(timer);
+      this.disconnectTimers.delete(timerKey);
+    }
   }
 
   handleGuess(lobby: Lobby, userId: string, predictions: Prediction[]): void {
@@ -216,7 +249,7 @@ export class LobbyService {
       roundIndex: lobby.roundIndex,
       playerName: game.roundWinner ?? null,
       word: lobby.words[lobby.roundIndex],
-      canvas: [], // placeholder
+      canvas: null, // placeholder
     });
 
     lobby.winningCanvasAlreadyReceived = false;

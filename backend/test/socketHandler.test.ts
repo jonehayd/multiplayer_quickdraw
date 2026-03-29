@@ -337,8 +337,8 @@ describe("WebSocket Handlers", () => {
       expect(mockWs2.send).toHaveBeenCalled();
 
       const sentData = JSON.parse((mockWs2.send as any).mock.calls[0][0]);
-      expect(sentData.msg.type).toBe("CANVAS_STROKE");
-      expect(sentData.msg.playerId).toBe("player-1");
+      expect(sentData.type).toBe("CANVAS_STROKE");
+      expect(sentData.playerId).toBe("player-1");
     });
 
     it("should do nothing if no lobby ID in context", () => {
@@ -395,8 +395,8 @@ describe("WebSocket Handlers", () => {
       expect(mockWs2.send).toHaveBeenCalled();
 
       const sentData = JSON.parse((mockWs2.send as any).mock.calls[0][0]);
-      expect(sentData.msg.type).toBe("CANVAS_UNDO");
-      expect(sentData.msg.playerId).toBe("player-1");
+      expect(sentData.type).toBe("CANVAS_UNDO");
+      expect(sentData.playerId).toBe("player-1");
     });
 
     it("should do nothing if lobby not found", () => {
@@ -426,8 +426,8 @@ describe("WebSocket Handlers", () => {
       expect(mockWs2.send).toHaveBeenCalled();
 
       const sentData = JSON.parse((mockWs2.send as any).mock.calls[0][0]);
-      expect(sentData.msg.type).toBe("CANVAS_CLEAR");
-      expect(sentData.msg.playerId).toBe("player-1");
+      expect(sentData.type).toBe("CANVAS_CLEAR");
+      expect(sentData.playerId).toBe("player-1");
     });
   });
 

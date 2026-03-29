@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const STORAGE_KEY = "quickdraw_reconnect";
 
 export function useLobby() {
   const [lobbyInfo, setLobbyInfo] = useState(null);
@@ -19,6 +21,30 @@ export function useLobby() {
     return data;
   }
 
+  // On mount, attempt to restore a previous session on genuine page reloads only.
+  useEffect(() => {
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+
+    const navType = performance.getEntriesByType("navigation")[0]?.type;
+    if (navType !== "reload") {
+      sessionStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(saved);
+    } catch {
+      sessionStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+
+    request("/api/lobby/reconnect", parsed)
+      .then((data) => setLobbyInfo(data))
+      .catch(() => sessionStorage.removeItem(STORAGE_KEY));
+  }, []);
+
   async function handleAction(payload) {
     const { displayName, isPublic, inviteCode } = payload;
     let data;
@@ -36,10 +62,15 @@ export function useLobby() {
     }
 
     setLobbyInfo(data);
+    sessionStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ lobbyId: data.lobby.id, userId: data.userId }),
+    );
     return data;
   }
 
   function leaveLobby() {
+    sessionStorage.removeItem(STORAGE_KEY);
     setLobbyInfo(null);
   }
 

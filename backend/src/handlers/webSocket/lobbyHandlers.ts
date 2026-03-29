@@ -33,7 +33,10 @@ export function handleJoinLobby({
   if (!lobby) return;
 
   const player = lobby.players.get(userId);
-  if (player) player.ws = ws;
+  if (player) {
+    lobbyService.cancelDisconnectTimer(lobbyId, userId);
+    player.ws = ws;
+  }
 
   broadcastLobbyUpdate(lobby);
 }

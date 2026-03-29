@@ -7,7 +7,11 @@ import {
 } from "../../types/index.js";
 import { broadcastLobbyUpdate } from "./broadcast.js";
 
-export function handleStartGame({ context }: { context: MessageContext }) {
+export async function handleStartGame({
+  context,
+}: {
+  context: MessageContext;
+}): Promise<void> {
   const { currentLobbyId, currentUserId } = context;
   if (!currentLobbyId || !currentUserId) return;
 
@@ -18,7 +22,7 @@ export function handleStartGame({ context }: { context: MessageContext }) {
   if (!player?.isHost) return;
   if (lobby.players.size < 2) return;
 
-  lobbyService.startGame(currentLobbyId, currentUserId);
+  await lobbyService.startGame(currentLobbyId, currentUserId);
 }
 
 export function handleGuess({
@@ -35,6 +39,7 @@ export function handleGuess({
   if (!lobby) return;
 
   lobbyService.handleGuess(lobby, currentUserId, msg.predictions);
+  broadcastLobbyUpdate(lobby);
 }
 
 export function handleWinningCanvas({
@@ -51,4 +56,5 @@ export function handleWinningCanvas({
   if (!lobby) return;
 
   lobbyService.handleWinningCanvas(lobby, currentUserId, msg.canvas);
+  broadcastLobbyUpdate(lobby);
 }

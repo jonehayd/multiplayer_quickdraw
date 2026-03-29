@@ -17,5 +17,5 @@ export interface WinningCanvas {
   playerId: string | null;
   playerName: string | null;
   word: string;
-  canvas: CanvasStrokes | [];
+  canvas: CanvasStrokes | null;
 }

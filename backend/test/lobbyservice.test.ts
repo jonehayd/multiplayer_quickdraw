@@ -112,7 +112,7 @@ describe("LobbyService", () => {
   });
 
   describe("handleDisconnect", () => {
-    it("should remove player from lobby", () => {
+    it("should remove player from lobby after grace period", () => {
       const player2: Player = {
         id: "player-2",
         name: "Player 2",
@@ -124,17 +124,26 @@ describe("LobbyService", () => {
 
       lobbyService.handleDisconnect("lobby-1", "player-2");
 
+      // Player still present during grace period
+      expect(mockLobby.players.has("player-2")).toBe(true);
+
+      vi.advanceTimersByTime(30_000);
+
       expect(mockLobby.players.has("player-2")).toBe(false);
       expect(mockLobby.players.size).toBe(1);
     });
 
-    it("should delete lobby when last player disconnects", () => {
+    it("should delete lobby when last player disconnects after grace period", () => {
       lobbyService.handleDisconnect("lobby-1", "player-1");
+
+      expect(lobbyRepo.getLobby("lobby-1")).toBeDefined();
+
+      vi.advanceTimersByTime(30_000);
 
       expect(lobbyRepo.getLobby("lobby-1")).toBeUndefined();
     });
 
-    it("should promote next player to host when host disconnects", () => {
+    it("should promote next player to host when host disconnects after grace period", () => {
       const player2: Player = {
         id: "player-2",
         name: "Player 2",
@@ -145,6 +154,8 @@ describe("LobbyService", () => {
       mockLobby.players.set("player-2", player2);
 
       lobbyService.handleDisconnect("lobby-1", "player-1");
+
+      vi.advanceTimersByTime(30_000);
 
       expect(player2.isHost).toBe(true);
       expect(mockLobby.players.size).toBe(1);
@@ -307,7 +318,9 @@ describe("LobbyService", () => {
 
       lobbyService.handleWinningCanvas(mockLobby, "player-2", canvasData);
 
-      expect(mockLobby.winningCanvases).toHaveLength(0);
+      // beforeEach already pushed a placeholder via instant-win; non-winner should not add another
+      expect(mockLobby.winningCanvases).toHaveLength(1);
+      expect(mockLobby.winningCanvases![0].canvas).toBeNull();
     });
 
     it("should not store duplicate canvas for same round", () => {
