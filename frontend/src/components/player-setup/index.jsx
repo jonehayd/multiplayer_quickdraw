@@ -52,7 +52,6 @@ export default function PlayerSetup() {
   return (
     <div className="container">
       <div className="glass-panel setup-panel">
-        {/* Game heading */}
         <div className="heading">
           <div className="icon-wrapper">
             <FaPencil />
@@ -61,7 +60,6 @@ export default function PlayerSetup() {
           <h2>Enter your display name and make or join a lobby</h2>
         </div>
 
-        {/* Name Form */}
         <div className="name-form">
           <input
             type="text"
@@ -76,9 +74,7 @@ export default function PlayerSetup() {
           />
         </div>
 
-        {/* Lobby Actions */}
         <div className="lobby-actions">
-          {/* Create Lobby */}
           <div className="lobby-section">
             <h3>Create Lobby</h3>
 
@@ -103,7 +99,6 @@ export default function PlayerSetup() {
             </button>
           </div>
 
-          {/* Join Lobby */}
           <div className="lobby-section">
             <h3>Join Lobby</h3>
 
@@ -139,7 +134,6 @@ export default function PlayerSetup() {
           </div>
         </div>
 
-        {/* How to play */}
         <div className="how-to-play">
           <p>How to play:</p>
           <ul>

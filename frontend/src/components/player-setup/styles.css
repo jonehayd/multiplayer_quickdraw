@@ -179,7 +179,7 @@ input:focus {
   font-size: 0.9rem;
 }
 
-/* ── Responsive ──────────────────────────────────────────── */
+/* Responsive */
 @media (max-width: 600px) {
   .container {
     padding: 1rem;

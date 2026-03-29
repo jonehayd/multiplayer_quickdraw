@@ -1,4 +1,4 @@
-/* ── Game page background ────────────────────────────────── */
+/* Game page */
 .game-page {
   min-height: calc(100vh - 2rem);
   display: flex;
@@ -14,7 +14,7 @@
   color: var(--text-primary);
 }
 
-/* ── Header bar ──────────────────────────────────────────── */
+/* Header bar */
 .game-header {
   display: flex;
   justify-content: space-between;
@@ -78,7 +78,7 @@
   border-color: var(--danger);
 }
 
-/* ── Three-column body ───────────────────────────────────── */
+/* Three-column body */
 .game-body {
   flex: 1;
   display: grid;
@@ -87,7 +87,7 @@
   min-height: 0;
 }
 
-/* ── Sidebars (shared) ───────────────────────────────────── */
+/* Sidebars (shared styles) */
 .game-sidebar {
   display: flex;
   flex-direction: column;
@@ -111,7 +111,7 @@
   margin: 0 0 0.75rem;
 }
 
-/* ── Center canvas area ──────────────────────────────────── */
+/* Center canvas area */
 .game-center {
   display: flex;
   align-items: flex-start;
@@ -119,7 +119,7 @@
   min-height: 0;
 }
 
-/* ── Player scores (left panel) ──────────────────────────── */
+/* Player scores */
 .player-scores-container {
   display: flex;
   flex-direction: column;
@@ -170,7 +170,7 @@
   color: var(--accent);
 }
 
-/* ── AI Guess display (left panel) ───────────────────────── */
+/* AI guess display */
 .guess-display h3 {
   display: none; /* title is the panel-title above */
 }
@@ -204,7 +204,7 @@
   color: var(--accent);
 }
 
-/* ── Side-view canvases (right panel) ────────────────────── */
+/* Side-view canvases */
 .side-view-container {
   display: flex;
   flex-direction: column;
@@ -231,7 +231,7 @@
   color: var(--text-muted);
 }
 
-/* ── Responsive ──────────────────────────────────────────── */
+/* Responsive */
 @media (max-width: 768px) {
   .game-page {
     margin: 0.25rem;

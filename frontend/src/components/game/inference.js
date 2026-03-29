@@ -28,6 +28,8 @@ export async function initInference() {
   });
 }
 
+// Preprocesses the canvas into a 28x28 grayscale tensor, matching the format the model was trained on.
+// The drawing is cropped to its bounding box and scaled to fit within the 28x28 grid.
 function getCanvasTensor(canvas) {
   const SIZE = 28;
   const ctx = canvas.getContext("2d");
@@ -38,6 +40,7 @@ function getCanvasTensor(canvas) {
     canvas.height,
   );
 
+  // Find the bounding box of the drawing by scanning for non-white pixels
   let minX = width,
     minY = height,
     maxX = 0,
@@ -56,6 +59,7 @@ function getCanvasTensor(canvas) {
     }
   }
 
+  // Add a small border around the bounding box so the drawing isn't flush against the edges
   const padding = 20;
   minX = Math.max(0, minX - padding);
   minY = Math.max(0, minY - padding);
@@ -73,6 +77,7 @@ function getCanvasTensor(canvas) {
   tempCtx.fillStyle = "white";
   tempCtx.fillRect(0, 0, SIZE, SIZE);
 
+  // Scale the crop to fit inside the 28x28 target while preserving aspect ratio
   const scale = Math.min(SIZE / cropW, SIZE / cropH);
   const drawW = cropW * scale;
   const drawH = cropH * scale;
@@ -89,6 +94,8 @@ function getCanvasTensor(canvas) {
     drawH,
   );
 
+  // Convert pixels to a binary float array: 1 for ink, 0 for background.
+  // A small threshold filters out near-white anti-aliased edges.
   const pixels = tempCtx.getImageData(0, 0, SIZE, SIZE).data;
   const tensorData = new Float32Array(SIZE * SIZE);
   const THRESHOLD = 0.05;

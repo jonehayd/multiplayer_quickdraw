@@ -14,14 +14,14 @@ export default function GameEnd() {
   // Sort players by score descending
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
-  const podiumPlayers = sortedPlayers.slice(0, 3); // top 3
-  const otherPlayers = sortedPlayers.slice(3); // The rest
+  const podiumPlayers = sortedPlayers.slice(0, 3);
+  const otherPlayers = sortedPlayers.slice(3);
 
   const winningPlayerId = podiumPlayers[0]?.id;
 
   const handleBackToLobby = () => leaveLobby();
 
-  // Build complete rounds array including empty canvases for no-winner rounds
+  // Builds the full rounds list, inserting placeholders for rounds where nobody guessed correctly
   const allRounds = [];
   for (let i = 0; i < totalRounds; i++) {
     const winningCanvas = winningCanvases.find((c) => c.roundIndex === i);
@@ -49,7 +49,7 @@ export default function GameEnd() {
       <div className="glass-panel game-end-panel">
         <h1 className="game-end-title">Game Over</h1>
 
-        {/* ── Podium ──────────────────────────────────── */}
+        {/* Podium */}
         <div className="podium">
           {podiumPlayers.map((player, index) => {
             const visualIndex = index === 0 ? 1 : index === 1 ? 0 : 2;
@@ -70,7 +70,7 @@ export default function GameEnd() {
           })}
         </div>
 
-        {/* ── Leaderboard (4th place+) ───────────────── */}
+        {/* Leaderboard (4th place and below) */}
         {otherPlayers.length > 0 && (
           <div className="leaderboard">
             {otherPlayers.map((player, index) => (
@@ -83,7 +83,7 @@ export default function GameEnd() {
           </div>
         )}
 
-        {/* ── Rounds carousel ────────────────────────── */}
+        {/* Rounds carousel */}
         {allRounds.length > 0 && (
           <div className="gallery-section">
             <h2 className="gallery-title">All Rounds</h2>
@@ -155,14 +155,11 @@ function CanvasPreview({ canvasData }) {
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // If no canvas data, just show white canvas
     if (!canvasData || !canvasData.canvas) return;
 
-    // Calculate scale factors
     const scaleX = DISPLAY_WIDTH / ORIGINAL_WIDTH;
     const scaleY = DISPLAY_HEIGHT / ORIGINAL_HEIGHT;
 
-    // Draw each stroke with proper scaling
     ctx.lineCap = "round";
     canvasData.canvas.forEach((stroke) => {
       const points = stroke.points;

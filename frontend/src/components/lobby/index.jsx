@@ -43,13 +43,12 @@ export default function Lobby() {
 
   return (
     <div className="lobby-page">
-      {/* Exit lobby */}
+      {/* Back button */}
       <button onClick={leaveLobby} className="exit-lobby-btn">
         <FaArrowLeft />
         Exit Lobby
       </button>
 
-      {/* Lobby container */}
       <div className="waiting-room-container">
         {/* Header */}
         <div className="waiting-room-header">
@@ -60,7 +59,7 @@ export default function Lobby() {
           <p>{statusText}</p>
         </div>
 
-        {/* Invite code */}
+        {/* Invite code display */}
         <div className="invite-code-container">
           <span className="label">Invite Code</span>
           <div className="invite-code-box">

@@ -26,7 +26,6 @@ export function handleCanvasStroke({
   context: MessageContext;
   msg: CanvasStrokeMessage;
 }) {
-  console.log("handleCanvasStroke called");
   const { currentLobbyId, currentUserId } = context;
   if (!currentLobbyId || !currentUserId) return;
 

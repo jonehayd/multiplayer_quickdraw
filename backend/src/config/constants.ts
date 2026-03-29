@@ -4,7 +4,7 @@ export const RoundLengths = {
   END_ROUND_LEN: 3000,
 };
 
-// The percent confidence needed to instantly win a round
+// Minimum confidence percentage required for the AI to count a guess as correct and end the round early
 export const CONFIDENCE_THRESHOLD_CUTOFF = 80;
 
 export const MAX_LOBBY_CAPACITY = 4;

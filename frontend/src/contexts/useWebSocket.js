@@ -11,7 +11,7 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
   const clearCanvasRef = useRef(clearCanvas);
   const hasSentCanvasRef = useRef(false);
 
-  // Keep refs updated
+  // Keep callback refs up to date so the WebSocket effect doesn't need to re-run when they change
   useEffect(() => {
     updateLobbyRef.current = updateLobby;
     applyCanvasUpdateRef.current = applyCanvasUpdate;
@@ -23,16 +23,15 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
   useEffect(() => {
     if (!lobbyInfo) return;
 
-    // When entering ROUND_START, clear all canvases including the current player's
+  // When entering ROUND_START, clear all canvases so the board is fresh for the new round
     if (lobbyInfo.lobby.state === "ROUND_START") {
       hasSentCanvasRef.current = false;
-      // Clear all player canvases (including own canvas for the new round)
       lobbyInfo.lobby.players.forEach((player) => {
         clearCanvasRef.current(player.id);
       });
     }
 
-    // When entering ROUND_END, only clear other players' canvases (keep current player visible)
+    // When entering ROUND_END, only clear other players' canvases so the current player can still see their own drawing
     if (lobbyInfo.lobby.state === "ROUND_END") {
       const otherPlayers = lobbyInfo.lobby.players.filter(
         (player) => player.id !== lobbyInfo.userId,
@@ -53,13 +52,12 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
 
     console.log("Setting up WebSocket for lobby:", lobbyInfo.lobby.id);
 
-    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const wsUrl = apiUrl.replace(/^http/, "ws"); // http→ws, https→wss
+    const apiUrl || "http://localhost:3000";
+    const wsUrl = apiUrl.replace(/^http/, "ws"); // converts http to ws and https to wss
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log("WebSocket opened");
       ws.send(
         JSON.stringify({
           type: "JOIN_LOBBY",
@@ -74,13 +72,10 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
 
       switch (msg.type) {
         case "LOBBY_UPDATE":
-          console.log("Updating lobby");
           updateLobbyRef.current(msg.lobby);
           break;
 
         case "CANVAS_STROKE":
-          // Handle both in progress and completed strokes
-          console.log("Recieving canvas stroke");
           applyCanvasUpdateRef.current(
             msg.playerId,
             msg.stroke,
@@ -89,19 +84,16 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
           break;
 
         case "CANVAS_UNDO":
-          // Handle undo from other players
           applyCanvasUndoRef.current(msg.playerId);
           break;
 
         case "CANVAS_CLEAR":
-          // Handle clear from other players
           clearCanvasRef.current(msg.playerId);
           break;
       }
     };
 
     ws.onclose = () => {
-      console.log("WebSocket closed");
       wsRef.current = null;
     };
 
@@ -110,7 +102,6 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
     };
 
     return () => {
-      console.log("Cleaning up WebSocket");
       ws.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
