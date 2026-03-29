@@ -7,7 +7,9 @@ import lobbyRoutes from "./handlers/http/index.js";
 import { setupWebSockets } from "./webSocket/setUpWebSocket.js";
 
 const PORT = Number(process.env.PORT) || 3000;
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+const CLIENT_ORIGIN = (
+  process.env.CLIENT_ORIGIN || "http://localhost:5173"
+).replace(/\/$/, "");
 
 const app = express();
 app.use(cors({ origin: CLIENT_ORIGIN }));
