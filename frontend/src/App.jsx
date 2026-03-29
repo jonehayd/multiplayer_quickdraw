@@ -7,6 +7,7 @@ import StartRound from "./components/start-round";
 import RoundEnd from "./components/end-round";
 import GameEnd from "./components/game-end";
 import { GameState } from "../../shared/gameState";
+import { Analytics } from "@vercel/analytics/next";
 import "./App.css";
 
 function AppContent() {
@@ -27,9 +28,12 @@ function AppContent() {
 
 function App() {
   return (
-    <LobbyProvider>
-      <AppContent />
-    </LobbyProvider>
+    <>
+      <LobbyProvider>
+        <AppContent />
+      </LobbyProvider>
+      <Analytics />
+    </>
   );
 }
 
