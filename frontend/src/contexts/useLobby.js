@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 
 const STORAGE_KEY = "quickdraw_reconnect";
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 export function useLobby() {
   const [lobbyInfo, setLobbyInfo] = useState(null);
 
   async function request(url, body) {
-    const res = await fetch(url, {
+    const res = await fetch(`${API_BASE}${url}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

@@ -53,7 +53,9 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
 
     console.log("Setting up WebSocket for lobby:", lobbyInfo.lobby.id);
 
-    const ws = new WebSocket("ws://localhost:3000");
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const wsUrl = apiUrl.replace(/^http/, "ws"); // http→ws, https→wss
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {

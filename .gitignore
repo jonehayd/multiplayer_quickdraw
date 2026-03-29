@@ -4,6 +4,10 @@ data
 # Python stuff
 .venv
 
+# Environment variables
+.env
+.env.local
+
 # Logs
 logs
 *.log
