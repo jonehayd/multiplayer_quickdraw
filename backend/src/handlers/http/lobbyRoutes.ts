@@ -108,7 +108,9 @@ export function joinRandomLobby(req: Request, res: Response): void {
 
   const publicLobbies = lobbyRepository.getPublicLobbies();
   const lobby = publicLobbies.find(
-    (lobby) => lobby.state === GameState.LOBBY && lobby.players.size < MAX_LOBBY_CAPACITY
+    (lobby) =>
+      lobby.state === GameState.LOBBY &&
+      lobby.players.size < MAX_LOBBY_CAPACITY,
   );
   if (!lobby) {
     res.status(404).json({ error: "No public lobbies available" });
@@ -123,6 +125,36 @@ export function joinRandomLobby(req: Request, res: Response): void {
     isHost: false,
     score: 0,
   });
+
+  res.json({
+    lobby: serializeLobby(lobby),
+    userId,
+  });
+}
+
+export function reconnectLobby(req: Request, res: Response): void {
+  const { lobbyId, userId } = req.body;
+
+  if (
+    !lobbyId ||
+    typeof lobbyId !== "string" ||
+    !userId ||
+    typeof userId !== "string"
+  ) {
+    res.status(400).json({ error: "lobbyId and userId are required" });
+    return;
+  }
+
+  const lobby = lobbyRepository.getLobby(lobbyId);
+  if (!lobby) {
+    res.status(404).json({ error: "Lobby not found" });
+    return;
+  }
+
+  if (!lobby.players.has(userId)) {
+    res.status(404).json({ error: "Player not found in lobby" });
+    return;
+  }
 
   res.json({
     lobby: serializeLobby(lobby),
