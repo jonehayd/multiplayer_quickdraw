@@ -264,12 +264,17 @@
     gap: 0.75rem;
   }
 
-  .game-sidebar {
-    gap: 0.5rem;
+  /* Canvas comes first so changes in the score/guess panels below don't shift it */
+  .game-center {
+    order: -1;
   }
 
   .game-sidebar:last-child {
-    order: -1;
+    order: 0;
+  }
+
+  .game-sidebar {
+    gap: 0.5rem;
   }
 
   .sidebar-panel {
