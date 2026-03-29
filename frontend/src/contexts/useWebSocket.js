@@ -23,7 +23,7 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
   useEffect(() => {
     if (!lobbyInfo) return;
 
-  // When entering ROUND_START, clear all canvases so the board is fresh for the new round
+    // When entering ROUND_START, clear all canvases so the board is fresh for the new round
     if (lobbyInfo.lobby.state === "ROUND_START") {
       hasSentCanvasRef.current = false;
       lobbyInfo.lobby.players.forEach((player) => {
@@ -52,7 +52,7 @@ export function useSocket({ wsRef, lobbyState, canvasState }) {
 
     console.log("Setting up WebSocket for lobby:", lobbyInfo.lobby.id);
 
-    const apiUrl || "http://localhost:3000";
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
     const wsUrl = apiUrl.replace(/^http/, "ws"); // converts http to ws and https to wss
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
