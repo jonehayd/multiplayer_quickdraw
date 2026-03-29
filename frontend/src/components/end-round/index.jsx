@@ -65,42 +65,44 @@ export default function RoundEnd() {
 
   return (
     <div className="round-end">
-      <div className="countdown">
-        <span className="countdown-number">{secondsLeft}</span>
-        <span className="countdown-text">Next round starts in</span>
-      </div>
+      <div className="glass-panel round-end-panel">
+        <div className="countdown">
+          <span className="countdown-number">{secondsLeft}</span>
+          <span className="countdown-text">Next round starts in</span>
+        </div>
 
-      <div className="winner-card">
-        <span className="winner-label">Round Winner</span>
-        <h1 className="winner-name">{roundWinner ?? "No winner"}</h1>
+        <div className="winner-card">
+          <span className="winner-label">Round Winner</span>
+          <h1 className="winner-name">{roundWinner ?? "No winner"}</h1>
 
-        {winningGuess && (
-          <div className="guess-info">
-            <div className="guess-row">
-              <span className="guess-label">Word</span>
-              <span className="guess-value">{lobby.word ?? "—"}</span>
+          {winningGuess && (
+            <div className="guess-info">
+              <div className="guess-row">
+                <span className="guess-label">Word</span>
+                <span className="guess-value">{lobby.word ?? "—"}</span>
+              </div>
+
+              <div className="guess-row">
+                <span className="guess-label">Confidence</span>
+                <span className="guess-value">
+                  {Number.isFinite(confidence) ? Math.round(confidence) : "—"}%
+                </span>
+              </div>
             </div>
+          )}
 
-            <div className="guess-row">
-              <span className="guess-label">Confidence</span>
-              <span className="guess-value">
-                {Number.isFinite(confidence) ? Math.round(confidence) : "—"}%
-              </span>
+          {winningCanvas && winningCanvas.length > 0 && (
+            <div className="winning-canvas-container">
+              <span className="canvas-label">Winning Drawing</span>
+              <canvas
+                ref={canvasRef}
+                width={DISPLAY_WIDTH}
+                height={DISPLAY_HEIGHT}
+                className="winning-canvas"
+              />
             </div>
-          </div>
-        )}
-
-        {winningCanvas && winningCanvas.length > 0 && (
-          <div className="winning-canvas-container">
-            <span className="canvas-label">Winning Drawing</span>
-            <canvas
-              ref={canvasRef}
-              width={DISPLAY_WIDTH}
-              height={DISPLAY_HEIGHT}
-              className="winning-canvas"
-            />
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

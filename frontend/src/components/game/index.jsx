@@ -104,7 +104,7 @@ export default function Game() {
   if (!lobby) return <p>Loading game...</p>;
 
   return (
-    <div className="game">
+    <div className="game-page">
       {/* Top HUD */}
       <div className="game-header">
         <div className="game-timer">
@@ -122,24 +122,36 @@ export default function Game() {
         </button>
       </div>
 
-      {/* Main content */}
+      {/* Main content — three columns */}
       <div className="game-body">
-        {/* Main canvas */}
-        <div className="main-canvas">
+        {/* Left sidebar: scores + AI guesses */}
+        <aside className="game-sidebar left">
+          <div className="sidebar-panel">
+            <h3 className="panel-title">Players</h3>
+            <PlayerScores players={lobby.players} />
+          </div>
+
+          <div className="sidebar-panel">
+            <h3 className="panel-title">AI Guesses</h3>
+            <GuessDisplay guesses={top3} />
+          </div>
+        </aside>
+
+        {/* Center: drawing canvas */}
+        <div className="game-center">
           <MainPlayerCanvas
             onStroke={handleStroke}
             onCurrentStroke={onCurrentStroke}
           />
         </div>
 
-        {/* Guesses */}
-        <GuessDisplay guesses={top3} />
-
-        {/* Side canvases */}
-        <SideViewCanvas />
-
-        {/* Scores */}
-        <PlayerScores players={lobby.players} />
+        {/* Right sidebar: other players' canvases */}
+        <aside className="game-sidebar right">
+          <div className="sidebar-panel">
+            <h3 className="panel-title">Other Players</h3>
+            <SideViewCanvas />
+          </div>
+        </aside>
       </div>
     </div>
   );
