@@ -3,20 +3,30 @@
   margin: 0 auto;
   text-align: center;
 
-  --bg-page: #121212;
-  --bg-panel: #1e1e1e;
-  --bg-panel-light: #2a2a2a;
+  /* Background */
+  --bg-page: #0f172a;
+  --bg-panel: #1e293b;
+  --bg-panel-light: #334155;
 
-  --accent: #4cafef;
-  --accent-soft: #6fc3ff;
+  /* Accent */
+  --accent: #f59e0b;
+  --accent-soft: #fbbf24;
+  --accent-glow: rgba(245, 158, 11, 0.25);
 
-  --text-primary: #ffffff;
-  --text-secondary: #cccccc;
-  --text-muted: #aaaaaa;
+  /* Text */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
 
-  --danger: #ff6f61;
-  --success: #4cafef;
+  /* Semantic */
+  --danger: #ef4444;
+  --success: #22c55e;
 
+  /* Glass */
+  --glass-bg: rgba(15, 23, 42, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  /* Radius */
   --radius-lg: 16px;
   --radius-md: 12px;
   --radius-sm: 8px;
@@ -24,4 +34,13 @@
 
 .card {
   padding: 2em;
+}
+
+/* Reusable glass panel */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
 }

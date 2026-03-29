@@ -15,21 +15,23 @@ export default function StartRound() {
 
   return (
     <div className="start-round">
-      <div className="round-meta">
-        <span className="round-label">Round</span>
-        <span className="round-count">
-          {roundIndex} / {totalRounds}
-        </span>
-      </div>
+      <div className="glass-panel round-panel">
+        <div className="round-meta">
+          <span className="round-label">Round</span>
+          <span className="round-count">
+            {roundIndex} / {totalRounds}
+          </span>
+        </div>
 
-      <div className="countdown">
-        <span className="countdown-number">{secondsLeft}</span>
-        <span className="countdown-text">Starting in</span>
-      </div>
+        <div className="countdown">
+          <span className="countdown-number">{secondsLeft}</span>
+          <span className="countdown-text">Starting in</span>
+        </div>
 
-      <div className="word-card">
-        <span className="word-label">Your word</span>
-        <h1 className="word">{word}</h1>
+        <div className="word-card">
+          <span className="word-label">Your word</span>
+          <h1 className="word">{word}</h1>
+        </div>
       </div>
     </div>
   );

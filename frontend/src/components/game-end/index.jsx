@@ -1,6 +1,6 @@
 import { GiDiamondTrophy } from "react-icons/gi";
 import { useLobbyContext } from "../../contexts/LobbyContext.jsx";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import "./styles.css";
 
 export default function GameEnd() {
@@ -28,7 +28,6 @@ export default function GameEnd() {
     if (winningCanvas) {
       allRounds.push(winningCanvas);
     } else {
-      // Add empty canvas entry for rounds with no winner
       allRounds.push({
         roundIndex: i,
         word: lobbyInfo.lobby.word ?? "Unknown",
@@ -39,59 +38,101 @@ export default function GameEnd() {
     }
   }
 
+  const [centerIndex, setCenterIndex] = useState(0);
+
+  const goLeft = () => setCenterIndex((i) => Math.max(0, i - 1));
+  const goRight = () =>
+    setCenterIndex((i) => Math.min(allRounds.length - 1, i + 1));
+
   return (
-    <div className="container game-end">
-      <h1>Game Over</h1>
+    <div className="game-end-page">
+      <div className="glass-panel game-end-panel">
+        <h1 className="game-end-title">Game Over</h1>
 
-      <div className="podium">
-        {podiumPlayers.map((player, index) => {
-          const visualIndex = index === 0 ? 1 : index === 1 ? 0 : 2;
-          return (
-            <div
-              key={player.id}
-              className={`podium-step rank-${index + 1} visual-${visualIndex}`}
-            >
-              <div className="score">{player.score}</div>
-              <div className="name">
-                {player.name}
-                {player.id === winningPlayerId && (
-                  <GiDiamondTrophy className="trophy" />
-                )}
+        {/* ── Podium ──────────────────────────────────── */}
+        <div className="podium">
+          {podiumPlayers.map((player, index) => {
+            const visualIndex = index === 0 ? 1 : index === 1 ? 0 : 2;
+            return (
+              <div
+                key={player.id}
+                className={`podium-step rank-${index + 1} visual-${visualIndex}`}
+              >
+                <div className="podium-score">{player.score}</div>
+                <div className="podium-name">
+                  {player.name}
+                  {player.id === winningPlayerId && (
+                    <GiDiamondTrophy className="trophy" />
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {otherPlayers.length > 0 && (
-        <div className="leaderboard">
-          {otherPlayers.map((player, index) => (
-            <div key={player.id} className="leaderboard-row">
-              <span className="rank">{index + 4}.</span>
-              <span className="name">{player.name}</span>
-              <span className="score">{player.score}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
-      )}
 
-      {/* All Rounds Gallery */}
-      {allRounds && allRounds.length > 0 && (
-        <div className="winning-canvases-gallery">
-          <h2>All Rounds</h2>
-          <div className="canvas-grid">
-            {allRounds.map((item, index) => (
-              <div key={index} className="canvas-item">
-                <CanvasPreview canvasData={item} />
+        {/* ── Leaderboard (4th place+) ───────────────── */}
+        {otherPlayers.length > 0 && (
+          <div className="leaderboard">
+            {otherPlayers.map((player, index) => (
+              <div key={player.id} className="leaderboard-row">
+                <span className="lb-rank">{index + 4}.</span>
+                <span className="lb-name">{player.name}</span>
+                <span className="lb-score">{player.score}</span>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
 
-      <button className="back-to-lobby-btn" onClick={handleBackToLobby}>
-        Back to Lobby
-      </button>
+        {/* ── Rounds carousel ────────────────────────── */}
+        {allRounds.length > 0 && (
+          <div className="gallery-section">
+            <h2 className="gallery-title">All Rounds</h2>
+
+            <div className="gallery-wrapper">
+              <button
+                className="gallery-arrow"
+                onClick={goLeft}
+                disabled={centerIndex === 0}
+                aria-label="Previous round"
+              >
+                &#8249;
+              </button>
+
+              <div className="gallery-track">
+                {[centerIndex - 1, centerIndex, centerIndex + 1].map((i) => {
+                  const item = allRounds[i];
+                  const isCenter = i === centerIndex;
+                  return (
+                    <div
+                      key={i}
+                      className={`canvas-item${isCenter ? " active" : ""}`}
+                    >
+                      {item ? (
+                        <CanvasPreview canvasData={item} />
+                      ) : (
+                        <div className="canvas-card placeholder" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button
+                className="gallery-arrow"
+                onClick={goRight}
+                disabled={centerIndex === allRounds.length - 1}
+                aria-label="Next round"
+              >
+                &#8250;
+              </button>
+            </div>
+          </div>
+        )}
+
+        <button className="back-to-lobby-btn" onClick={handleBackToLobby}>
+          Back to Lobby
+        </button>
+      </div>
     </div>
   );
 }
@@ -144,14 +185,12 @@ function CanvasPreview({ canvasData }) {
   }, [canvasData]);
 
   return (
-    <div
-      className={`canvas-preview-card ${!canvasData.playerId ? "no-winner" : ""}`}
-    >
+    <div className={`canvas-card ${!canvasData.playerId ? "no-winner" : ""}`}>
       <canvas ref={canvasRef} width={400} height={250} />
       <div className="canvas-info">
-        <span className="round-label">Round {canvasData.roundIndex + 1}</span>
-        <span className="word-label">{canvasData.word}</span>
-        <span className="player-label">{canvasData.playerName}</span>
+        <span className="canvas-round">Round {canvasData.roundIndex + 1}</span>
+        <span className="canvas-word">{canvasData.word}</span>
+        <span className="canvas-player">{canvasData.playerName}</span>
       </div>
     </div>
   );

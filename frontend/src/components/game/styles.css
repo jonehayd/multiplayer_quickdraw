@@ -1,11 +1,16 @@
 /* ── Game page background ────────────────────────────────── */
 .game-page {
-  min-height: 100vh;
+  min-height: calc(100vh - 2rem);
   display: flex;
   flex-direction: column;
+  margin: 1rem;
   padding: 1.25rem 1.5rem;
   gap: 1rem;
-  background: var(--bg-page);
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
   color: var(--text-primary);
 }
 
@@ -139,7 +144,7 @@
   height: 30px;
   border-radius: 50%;
   background: var(--accent);
-  color: #000;
+  color: #0f172a;
   display: flex;
   align-items: center;
   justify-content: center;

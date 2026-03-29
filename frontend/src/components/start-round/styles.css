@@ -6,8 +6,17 @@
   justify-content: center;
   gap: 2rem;
   text-align: center;
-  background: var(--bg-page);
   color: var(--text-primary);
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.round-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 3rem 3.5rem;
 }
 
 .round-meta {
