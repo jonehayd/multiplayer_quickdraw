@@ -9,7 +9,7 @@ import { initInference, predict } from "./inference";
 import "./styles.css";
 
 export default function Game() {
-  const { lobbyInfo, send, drawingsByPlayer } = useLobbyContext();
+  const { lobbyInfo, send, drawingsByPlayer, leaveLobby } = useLobbyContext();
   const lobby = lobbyInfo?.lobby;
   const winningCanvasStrokesRef = useRef(null);
   const highestConfidence = useRef(0);
@@ -116,6 +116,10 @@ export default function Game() {
           <span className="word-label">Draw</span>
           <span className="word-value">{lobby.word}</span>
         </div>
+
+        <button className="leave-button" onClick={leaveLobby}>
+          Leave
+        </button>
       </div>
 
       {/* Main content */}
