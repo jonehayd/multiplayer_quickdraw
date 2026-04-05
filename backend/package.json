@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/server.js",
+    "build": "tsc && cp -r assets dist/assets",
+    "start": "node dist/src/server.js",
     "dev": "tsx src/server.ts",
     "test": "vitest",
     "test:watch": "vitest --watch",
