@@ -62,8 +62,8 @@ export default function PlayerSetup() {
             <h1 className="setup-title gradient-title">Quick Draw Battle</h1>
           </div>
           <p className="setup-subtitle">
-            Fast strokes, sharp AI, infinite creativity. Setup your player
-            profile and jump into the arena.
+            Draw the word fast and get AI to guess it right! The person with the
+            correct and highest confidence guess wins the round!
           </p>
         </div>
 
