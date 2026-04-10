@@ -1,12 +1,11 @@
 # Quick Draw Battle
 
-_Note: the backend uses Render free-tier, so the UI may not respond for around a minute if the server needs to be spinned up_
-**Live demo:** [Demo](https://quickdraw.hjones.dev/)
+**Live demo:** [quickdraw.hjones.dev](https://quickdraw.hjones.dev)
 
 ## Demo Video
 
 This video shows a full playthrough. Two separate tabs are used to demonstrate multiplayer.
-[![Demo Video](https://img.youtube.com/vi/S4r99zobvcM/maxresdefault.jpg)](https://www.youtube.com/watch?v=S4r99zobvcM)
+![Demo](.github/assets/demo.gif)
 
 ## What is it?
 
