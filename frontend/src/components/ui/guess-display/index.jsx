@@ -2,7 +2,13 @@ export default function GuessDisplay({ guesses }) {
   if (!guesses || guesses.length === 0) {
     return (
       <div className="guess-display-container">
-        <p style={{ color: "var(--on-surface-variant)", fontSize: "0.85rem", margin: 0 }}>
+        <p
+          style={{
+            color: "var(--on-surface-variant)",
+            fontSize: "0.85rem",
+            margin: 0,
+          }}
+        >
           Start drawing to see AI guesses...
         </p>
       </div>

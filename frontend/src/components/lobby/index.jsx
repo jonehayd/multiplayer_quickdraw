@@ -42,7 +42,11 @@ export default function Lobby() {
       {/* Header */}
       <header className="lobby-header">
         <div className="lobby-header-left">
-          <button onClick={leaveLobby} className="lobby-back-btn" title="Exit Lobby">
+          <button
+            onClick={leaveLobby}
+            className="lobby-back-btn"
+            title="Exit Lobby"
+          >
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
           <span className="lobby-title gradient-title">Quick Draw Battle</span>
@@ -137,4 +141,3 @@ export default function Lobby() {
     </div>
   );
 }
-

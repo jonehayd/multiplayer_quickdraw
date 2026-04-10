@@ -100,16 +100,24 @@ export default function Game() {
     <div className="game-page">
       {/* Header */}
       <header className="game-header">
-        <span className="game-header-title gradient-title">Quick Draw Battle</span>
+        <span className="game-header-title gradient-title">
+          Quick Draw Battle
+        </span>
 
         <div className="game-timer-pill">
-          <span className="material-symbols-outlined game-timer-icon">timer</span>
+          <span className="material-symbols-outlined game-timer-icon">
+            timer
+          </span>
           <span className="game-timer-value">
             {mm}:{ss}
           </span>
         </div>
 
-        <button className="game-leave-btn" onClick={leaveLobby} title="Leave game">
+        <button
+          className="game-leave-btn"
+          onClick={leaveLobby}
+          title="Leave game"
+        >
           <span className="material-symbols-outlined">logout</span>
           Leave
         </button>

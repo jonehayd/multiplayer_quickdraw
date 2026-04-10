@@ -32,11 +32,16 @@ export default function GameEnd() {
   }
 
   const [centerIndex, setCenterIndex] = useState(0);
-  const goLeft  = () => setCenterIndex((i) => Math.max(0, i - 1));
-  const goRight = () => setCenterIndex((i) => Math.min(allRounds.length - 1, i + 1));
+  const goLeft = () => setCenterIndex((i) => Math.max(0, i - 1));
+  const goRight = () =>
+    setCenterIndex((i) => Math.min(allRounds.length - 1, i + 1));
 
   // Arrange podium: 2nd | 1st | 3rd
-  const podiumOrder = [podiumPlayers[1], podiumPlayers[0], podiumPlayers[2]].filter(Boolean);
+  const podiumOrder = [
+    podiumPlayers[1],
+    podiumPlayers[0],
+    podiumPlayers[2],
+  ].filter(Boolean);
 
   return (
     <div className="ge-page">
@@ -45,7 +50,9 @@ export default function GameEnd() {
 
       {/* Header */}
       <header className="ge-header">
-        <span className="ge-header-title gradient-title">Quick Draw Battle</span>
+        <span className="ge-header-title gradient-title">
+          Quick Draw Battle
+        </span>
         <button className="ge-back-btn" onClick={leaveLobby}>
           <span className="material-symbols-outlined">arrow_back</span>
           Back to Lobby
@@ -70,11 +77,18 @@ export default function GameEnd() {
                 const rank = sortedPlayers.indexOf(player) + 1;
                 const isWinner = player.id === winningPlayerId;
                 return (
-                  <div key={player.id} className={`ge-podium-slot rank-${rank}`}>
+                  <div
+                    key={player.id}
+                    className={`ge-podium-slot rank-${rank}`}
+                  >
                     {isWinner && (
-                      <span className="ge-crown material-symbols-outlined">workspace_premium</span>
+                      <span className="ge-crown material-symbols-outlined">
+                        workspace_premium
+                      </span>
                     )}
-                    <div className="ge-podium-avatar">{player.name[0].toUpperCase()}</div>
+                    <div className="ge-podium-avatar">
+                      {player.name[0].toUpperCase()}
+                    </div>
                     <div className="ge-podium-name">{player.name}</div>
                     <div className="ge-podium-score">{player.score}</div>
                     <div className="ge-podium-block">
@@ -95,9 +109,14 @@ export default function GameEnd() {
           </h3>
           <div className="ge-lb-list">
             {sortedPlayers.map((player, idx) => (
-              <div key={player.id} className={`ge-lb-row${idx === 0 ? " first" : ""}`}>
+              <div
+                key={player.id}
+                className={`ge-lb-row${idx === 0 ? " first" : ""}`}
+              >
                 <span className="ge-lb-rank">#{idx + 1}</span>
-                <div className="ge-lb-avatar">{player.name[0].toUpperCase()}</div>
+                <div className="ge-lb-avatar">
+                  {player.name[0].toUpperCase()}
+                </div>
                 <span className="ge-lb-name">{player.name}</span>
                 <span className="ge-lb-score">{player.score}</span>
               </div>
@@ -193,15 +212,17 @@ function CanvasPreview({ canvasData }) {
   }, [canvasData]);
 
   return (
-    <div className={`ge-canvas-card${!canvasData.playerId ? " no-winner" : ""}`}>
+    <div
+      className={`ge-canvas-card${!canvasData.playerId ? " no-winner" : ""}`}
+    >
       <canvas ref={canvasRef} width={400} height={250} />
       <div className="ge-canvas-info">
-        <span className="ge-canvas-round">Round {canvasData.roundIndex + 1}</span>
+        <span className="ge-canvas-round">
+          Round {canvasData.roundIndex + 1}
+        </span>
         <span className="ge-canvas-word">{canvasData.word}</span>
         <span className="ge-canvas-player">{canvasData.playerName}</span>
       </div>
     </div>
   );
 }
-
-

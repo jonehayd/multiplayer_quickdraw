@@ -352,11 +352,7 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
             <span className="material-symbols-outlined">ink_eraser</span>
           </button>
           <div className="canvas-toolbar-divider" />
-          <button
-            title="Undo"
-            onClick={undoStroke}
-            className="canvas-tool-btn"
-          >
+          <button title="Undo" onClick={undoStroke} className="canvas-tool-btn">
             <span className="material-symbols-outlined">undo</span>
           </button>
           <button

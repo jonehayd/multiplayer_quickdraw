@@ -60,8 +60,7 @@ export default function RoundEnd() {
     });
   }, [winningCanvas]);
 
-  if (!lobby)
-    return <p className="re-error">Unable to load lobby info!</p>;
+  if (!lobby) return <p className="re-error">Unable to load lobby info!</p>;
 
   const sortedPlayers = players
     ? [...players].sort((a, b) => b.score - a.score)
@@ -79,7 +78,9 @@ export default function RoundEnd() {
           <span className="re-timer-number">{secondsLeft}</span>
           <span className="re-timer-label">Next round in</span>
         </div>
-        <span className="re-header-title gradient-title">Round {lobby.roundIndex} / {lobby.totalRounds}</span>
+        <span className="re-header-title gradient-title">
+          Round {lobby.roundIndex} / {lobby.totalRounds}
+        </span>
       </header>
 
       <main className="re-main">
@@ -146,6 +147,3 @@ export default function RoundEnd() {
     </div>
   );
 }
-
-
-

@@ -6,11 +6,11 @@ export default function StartRound() {
   const { lobbyInfo } = useLobbyContext();
   const lobby = lobbyInfo?.lobby;
 
-  const { word, roundIndex, totalRounds, phaseStartedAt, phaseDuration } = lobby || {};
+  const { word, roundIndex, totalRounds, phaseStartedAt, phaseDuration } =
+    lobby || {};
   const secondsLeft = useCountdown(phaseStartedAt, phaseDuration);
 
-  if (!lobby)
-    return <p className="sr-error">Unable to load lobby info!</p>;
+  if (!lobby) return <p className="sr-error">Unable to load lobby info!</p>;
 
   return (
     <div className="sr-page">
@@ -43,7 +43,9 @@ export default function StartRound() {
             Your Word
           </div>
           <h1 className="sr-word">{word}</h1>
-          <p className="sr-word-hint">Get ready — the canvas opens when the timer hits zero.</p>
+          <p className="sr-word-hint">
+            Get ready — the canvas opens when the timer hits zero.
+          </p>
         </div>
       </main>
     </div>
