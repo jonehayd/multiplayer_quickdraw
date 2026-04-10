@@ -1,6 +1,6 @@
 .toggle-group {
   display: flex;
-  background: var(--bg-panel-light);
+  background: var(--surface-container-highest);
   border-radius: 999px;
   padding: 4px;
   gap: 4px;
@@ -12,19 +12,22 @@
   border-radius: 999px;
   border: none;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--on-surface-variant);
   cursor: pointer;
   font-size: 0.9rem;
+  font-family: 'Spline Sans', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
 .toggle-group-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-primary);
+  background: rgba(151, 169, 255, 0.1);
+  color: var(--on-surface);
 }
 
 .toggle-group-btn.active {
-  background: var(--accent);
-  color: #0f172a;
-  font-weight: 600;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dim) 100%);
+  color: var(--on-primary);
+  font-weight: 700;
 }

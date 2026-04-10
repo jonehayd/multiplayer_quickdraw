@@ -1,27 +1,36 @@
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from "framer-motion";
-
 export default function GuessDisplay({ guesses }) {
-  return (
-    <div className="guess-display">
-      <h3>Guesses</h3>
+  if (!guesses || guesses.length === 0) {
+    return (
+      <div className="guess-display-container">
+        <p style={{ color: "var(--on-surface-variant)", fontSize: "0.85rem", margin: 0 }}>
+          Start drawing to see AI guesses...
+        </p>
+      </div>
+    );
+  }
 
-      <ul>
-        <AnimatePresence>
-          {guesses.map((guess) => (
-            <motion.li
-              key={guess.label}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <span>{guess.label.trim()}</span>
-              <span>{guess.confidence}%</span>
-            </motion.li>
-          ))}
-        </AnimatePresence>
-      </ul>
+  return (
+    <div className="guess-display-container">
+      {guesses.map((guess, idx) => {
+        const isTop = idx === 0;
+        return (
+          <div
+            key={guess.label}
+            className={`guess-item${isTop ? " top-guess ai-pulse" : ""}`}
+          >
+            <div className="guess-label-row">
+              <span className="guess-name">{guess.label.trim()}</span>
+              <span className="guess-pct">{guess.confidence}%</span>
+            </div>
+            <div className="guess-bar-track">
+              <div
+                className="guess-bar-fill"
+                style={{ width: `${guess.confidence}%` }}
+              />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useLobbyContext } from "../../contexts/LobbyContext";
 import "./styles.css";
-import { FaPencil } from "react-icons/fa6";
 import ToggleGroup from "../ui/toggle-group";
 
 export default function PlayerSetup() {
@@ -32,7 +31,6 @@ export default function PlayerSetup() {
         inviteCode,
       });
     } catch (err) {
-      console.log("Invite code error caught");
       setInviteCodeError(err.message);
     }
   }
@@ -50,35 +48,60 @@ export default function PlayerSetup() {
   }
 
   return (
-    <div className="container">
-      <div className="glass-panel setup-panel">
-        <div className="heading">
-          <div className="icon-wrapper">
-            <FaPencil />
+    <div className="setup-page">
+      <div className="setup-glow setup-glow-top" />
+      <div className="setup-glow setup-glow-bottom" />
+
+      <main className="setup-main">
+        {/* Hero */}
+        <div className="setup-hero">
+          <div className="setup-hero-inner">
+            <div className="setup-icon-wrapper">
+              <span className="material-symbols-outlined">edit</span>
+            </div>
+            <h1 className="setup-title gradient-title">Quick Draw Battle</h1>
           </div>
-          <h1>Quick Draw Battle</h1>
-          <h2>Enter your display name and make or join a lobby</h2>
+          <p className="setup-subtitle">
+            Fast strokes, sharp AI, infinite creativity. Setup your player
+            profile and jump into the arena.
+          </p>
         </div>
 
-        <div className="name-form">
-          <input
-            type="text"
-            placeholder="Display name"
-            value={displayName}
-            onChange={(e) => {
-              setDisplayName(e.target.value);
-              setJoinError("");
-            }}
-            maxLength={16}
-            autoFocus
-          />
-        </div>
+        {/* Main card */}
+        <div className="glass-panel setup-card">
+          {/* Name input */}
+          <div className="setup-name-section">
+            <label className="setup-name-label" htmlFor="display-name">
+              What&rsquo;s your artist name?
+            </label>
+            <div className="setup-name-input-wrapper">
+              <input
+                id="display-name"
+                type="text"
+                className="setup-name-input"
+                placeholder="Enter Nickname..."
+                value={displayName}
+                onChange={(e) => {
+                  setDisplayName(e.target.value);
+                  setJoinError("");
+                }}
+                maxLength={16}
+                autoFocus
+              />
+              <span className="material-symbols-outlined setup-name-icon">
+                person
+              </span>
+            </div>
+          </div>
 
-        <div className="lobby-actions">
-          <div className="lobby-section">
-            <h3>Create Lobby</h3>
-
-            <div className="toggle">
+          {/* Bento grid */}
+          <div className="setup-bento">
+            {/* Create Lobby */}
+            <div className="setup-section">
+              <div className="setup-section-header">
+                <h3>Create Lobby</h3>
+                <p>Host your own room and invite friends.</p>
+              </div>
               <ToggleGroup
                 value={lobbyType}
                 onChange={setLobbyType}
@@ -87,62 +110,63 @@ export default function PlayerSetup() {
                   { label: "Private", value: "private" },
                 ]}
               />
+              <button
+                className="btn-primary setup-action-btn"
+                disabled={!isNameValid}
+                onClick={onCreateLobby}
+                type="button"
+              >
+                <span className="material-symbols-outlined">add_circle</span>
+                CREATE LOBBY
+              </button>
             </div>
 
-            <button
-              className="create-lobby-btn"
-              disabled={!isNameValid}
-              onClick={onCreateLobby}
-              type="button"
-            >
-              Make Lobby
-            </button>
+            {/* Join Lobby */}
+            <div className="setup-section">
+              <div className="setup-section-header">
+                <h3>Join Lobby</h3>
+                <p>Got a code? Enter it here to join.</p>
+              </div>
+              <input
+                type="text"
+                className="setup-code-input"
+                placeholder="Invite Code"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                maxLength={10}
+              />
+              <button
+                className="setup-secondary-btn"
+                disabled={!isNameValid || !inviteCode.trim()}
+                onClick={onJoinWithCode}
+                type="button"
+              >
+                <span className="material-symbols-outlined">meeting_room</span>
+                JOIN WITH CODE
+              </button>
+              {inviteCodeError && (
+                <p className="setup-error">{inviteCodeError}</p>
+              )}
+            </div>
           </div>
 
-          <div className="lobby-section">
-            <h3>Join Lobby</h3>
-
-            <input
-              type="text"
-              placeholder="Invite code"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
-              maxLength={10}
-            />
-
+          {/* Join Random */}
+          <div className="setup-random-section">
             <button
-              className="create-lobby-btn"
-              disabled={!isNameValid || !inviteCode.trim()}
-              onClick={onJoinWithCode}
-              type="button"
-            >
-              Join with Code
-            </button>
-            {inviteCodeError && <p className="join-error">{inviteCodeError}</p>}
-
-            <div className="divider">or</div>
-
-            <button
-              className="create-lobby-btn"
+              className="setup-random-btn"
               disabled={!isNameValid}
               onClick={onJoinRandom}
               type="button"
             >
-              Join Random Lobby
+              <span className="material-symbols-outlined setup-bolt">bolt</span>
+              JOIN RANDOM BATTLE
+              <span className="material-symbols-outlined setup-bolt">bolt</span>
             </button>
-            {joinError && <p className="join-error">{joinError}</p>}
+            {joinError && <p className="setup-error">{joinError}</p>}
           </div>
         </div>
-
-        <div className="how-to-play">
-          <p>How to play:</p>
-          <ul>
-            <li>Draw the word shown on screen</li>
-            <li>AI will try to guess your drawing</li>
-            <li>First to 6 rounds wins the game!</li>
-          </ul>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
+

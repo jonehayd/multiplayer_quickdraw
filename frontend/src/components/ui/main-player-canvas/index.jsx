@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLobbyContext } from "../../../contexts/LobbyContext";
 import "./styles.css";
-import { FaEraser } from "react-icons/fa";
-import { LuUndo2 } from "react-icons/lu";
-import { MdDeleteForever } from "react-icons/md";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 500;
@@ -306,30 +303,6 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
 
   return (
     <div className="player-canvas-container">
-      <div className="button-container">
-        <button
-          title="Clear"
-          onClick={clearCanvas}
-          className="action-button active"
-        >
-          <MdDeleteForever />
-        </button>
-        <button
-          title="Undo"
-          onClick={undoStroke}
-          className="action-button active"
-        >
-          <LuUndo2 />
-        </button>
-        <button
-          title="Eraser"
-          onClick={() => setTool(tool === "eraser" ? "pen" : "eraser")}
-          className={`action-button ${tool === "eraser" ? "active" : ""}`}
-        >
-          <FaEraser />
-        </button>
-      </div>
-
       <div className="canvas-wrapper">
         <canvas
           id="main-player-canvas"
@@ -356,6 +329,44 @@ export default function MainPlayerCanvas({ onStroke, onCurrentStroke }) {
             stopDrawing();
           }}
         />
+        <canvas
+          id="preview-canvas"
+          ref={previewCanvasRef}
+          className="preview-canvas"
+        />
+
+        {/* Floating toolbar */}
+        <div className="canvas-toolbar">
+          <button
+            title="Pen"
+            onClick={() => setTool("pen")}
+            className={`canvas-tool-btn${tool === "pen" ? " active" : ""}`}
+          >
+            <span className="material-symbols-outlined">edit</span>
+          </button>
+          <button
+            title="Eraser"
+            onClick={() => setTool("eraser")}
+            className={`canvas-tool-btn${tool === "eraser" ? " active" : ""}`}
+          >
+            <span className="material-symbols-outlined">ink_eraser</span>
+          </button>
+          <div className="canvas-toolbar-divider" />
+          <button
+            title="Undo"
+            onClick={undoStroke}
+            className="canvas-tool-btn"
+          >
+            <span className="material-symbols-outlined">undo</span>
+          </button>
+          <button
+            title="Clear"
+            onClick={clearCanvas}
+            className="canvas-tool-btn"
+          >
+            <span className="material-symbols-outlined">delete</span>
+          </button>
+        </div>
       </div>
     </div>
   );

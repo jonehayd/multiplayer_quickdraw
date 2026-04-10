@@ -1,5 +1,3 @@
-import { MdPeopleAlt } from "react-icons/md";
-import { FaArrowLeft, FaCrown, FaCopy, FaCheck } from "react-icons/fa";
 import { useState } from "react";
 import { useLobbyContext } from "../../contexts/LobbyContext";
 import "./styles.css";
@@ -15,20 +13,15 @@ export default function Lobby() {
   const { userId, lobby } = lobbyInfo;
   const { inviteCode, players } = lobby;
   const canStart = players.length >= 2;
-
   const isHost = players.some((p) => p.id === userId && p.isHost);
 
   let statusText;
-  let startButtonTitle;
   if (!canStart) {
-    statusText = "Waiting for players to join...";
-    startButtonTitle = "Need atleast 2 players to start";
+    statusText = "Need at least 2 players to start";
   } else if (isHost) {
-    statusText = "Press start game to begin!";
-    startButtonTitle = "Start";
+    statusText = "Press Start Battle to begin!";
   } else {
-    statusText = "Waiting for the host to start!";
-    startButtonTitle = "Only host can start";
+    statusText = "Waiting for the host to start...";
   }
 
   function handleCopyInviteCode() {
@@ -43,70 +36,105 @@ export default function Lobby() {
 
   return (
     <div className="lobby-page">
-      {/* Back button */}
-      <button onClick={leaveLobby} className="exit-lobby-btn">
-        <FaArrowLeft />
-        Exit Lobby
-      </button>
+      <div className="lobby-glow lobby-glow-tl" />
+      <div className="lobby-glow lobby-glow-br" />
 
-      <div className="waiting-room-container">
-        {/* Header */}
-        <div className="waiting-room-header">
-          <div className="people-icon">
-            <MdPeopleAlt />
-          </div>
+      {/* Header */}
+      <header className="lobby-header">
+        <div className="lobby-header-left">
+          <button onClick={leaveLobby} className="lobby-back-btn" title="Exit Lobby">
+            <span className="material-symbols-outlined">arrow_back</span>
+          </button>
+          <span className="lobby-title gradient-title">Quick Draw Battle</span>
+        </div>
+      </header>
+
+      {/* Main */}
+      <main className="lobby-main">
+        <div className="lobby-page-heading">
           <h1>Waiting Room</h1>
-          <p>{statusText}</p>
+          <p>Waiting for artists to join the battle arena...</p>
         </div>
 
-        {/* Invite code display */}
-        <div className="invite-code-container">
-          <span className="label">Invite Code</span>
-          <div className="invite-code-box">
-            <code>{inviteCode}</code>
-            <button onClick={handleCopyInviteCode}>
-              {copied ? <FaCheck /> : <FaCopy />}
-            </button>
+        <div className="lobby-bento">
+          {/* Left: invite code */}
+          <div className="lobby-left-col">
+            <div className="glass-panel lobby-code-card">
+              <div className="lobby-code-label">
+                <span className="material-symbols-outlined">share</span>
+                <span>Invite Friends</span>
+              </div>
+              <h2>Battle Code</h2>
+              <div className="lobby-code-display">
+                <code className="lobby-code-text">{inviteCode}</code>
+                <button
+                  className="lobby-copy-btn"
+                  onClick={handleCopyInviteCode}
+                  title="Copy invite code"
+                >
+                  <span className="material-symbols-outlined">
+                    {copied ? "check" : "content_copy"}
+                  </span>
+                </button>
+              </div>
+              <p className="lobby-code-hint">
+                Share this code with other players to invite them.
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Player list */}
-        <div className="players-section">
-          <div className="players-header">
-            <MdPeopleAlt />
-            <p>
-              Players ({players.length}/{MAX_PLAYERS})
-            </p>
-          </div>
-
-          <ul className="players-list">
-            {players.map((player) => (
-              <li key={player.id} className="player-row">
-                <div className="player-avatar">
-                  {player.name[0].toUpperCase()}
+          {/* Right: players */}
+          <div className="glass-panel lobby-players-card">
+            <div className="lobby-players-header">
+              <div>
+                <h2>Participants</h2>
+                <p>
+                  {players.length} / {MAX_PLAYERS} Slots Filled
+                </p>
+              </div>
+            </div>
+            <div className="lobby-players-grid">
+              {players.map((player) => (
+                <div
+                  key={player.id}
+                  className={`lobby-player-row${player.isHost ? " is-host" : ""}`}
+                >
+                  <div className="lobby-player-avatar">
+                    {player.name[0].toUpperCase()}
+                  </div>
+                  <div className="lobby-player-info">
+                    <span className="lobby-player-name">
+                      {player.name}
+                      {player.isHost && (
+                        <span className="lobby-host-badge">Host</span>
+                      )}
+                    </span>
+                  </div>
                 </div>
-
-                <span className="player-name">
-                  {player.name}
-                  {player.isHost && (
-                    <FaCrown className="host-icon" title="Host" />
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Start game */}
-        <button
-          title={startButtonTitle}
-          className={`start-game-btn ${canStart && isHost ? "active" : ""}`}
-          disabled={!canStart || !isHost}
-          onClick={handleStartGame}
-        >
-          Start Game
-        </button>
-      </div>
+        {/* Footer */}
+        <div className="lobby-footer">
+          <p className="lobby-status-text">
+            <span className="material-symbols-outlined">info</span>
+            {statusText}
+          </p>
+          <button
+            className={`lobby-start-btn${canStart && isHost ? " active" : ""}`}
+            disabled={!canStart || !isHost}
+            onClick={handleStartGame}
+          >
+            <span className="lobby-start-btn-content">
+              <span>Start Battle</span>
+              <span className="material-symbols-outlined">play_arrow</span>
+            </span>
+          </button>
+        </div>
+      </main>
     </div>
   );
 }
+
