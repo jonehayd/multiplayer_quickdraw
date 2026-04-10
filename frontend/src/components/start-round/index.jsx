@@ -7,32 +7,47 @@ export default function StartRound() {
   const lobby = lobbyInfo?.lobby;
 
   const { word, roundIndex, totalRounds, phaseStartedAt, phaseDuration } =
-    lobby;
+    lobby || {};
   const secondsLeft = useCountdown(phaseStartedAt, phaseDuration);
 
-  if (!lobby)
-    return <p className="start-round-error">Unable to load lobby info!</p>;
+  if (!lobby) return <p className="sr-error">Unable to load lobby info!</p>;
 
   return (
-    <div className="start-round">
-      <div className="glass-panel round-panel">
-        <div className="round-meta">
-          <span className="round-label">Round</span>
-          <span className="round-count">
-            {roundIndex} / {totalRounds}
-          </span>
+    <div className="sr-page">
+      <div className="sr-glow sr-glow-tl" />
+      <div className="sr-glow sr-glow-br" />
+
+      {/* nav bar */}
+      <header className="sr-nav">
+        <span className="sr-nav-title gradient-title">Quick Draw Battle</span>
+        <div className="sr-round-badge">
+          <span className="material-symbols-outlined">layers</span>
+          Round {roundIndex} / {totalRounds}
+        </div>
+      </header>
+
+      <main className="sr-main">
+        {/* Countdown */}
+        <div className="sr-countdown-wrapper">
+          <div className="sr-orbit-ring sr-orbit-1" />
+          <div className="sr-orbit-ring sr-orbit-2" />
+          <div className="sr-countdown-number">{secondsLeft}</div>
         </div>
 
-        <div className="countdown">
-          <span className="countdown-number">{secondsLeft}</span>
-          <span className="countdown-text">Starting in</span>
-        </div>
+        <p className="sr-starting-label">Starting in...</p>
 
-        <div className="word-card">
-          <span className="word-label">Your word</span>
-          <h1 className="word">{word}</h1>
+        {/* Word card */}
+        <div className="glass-panel sr-word-card">
+          <div className="sr-word-eyebrow">
+            <span className="material-symbols-outlined">brush</span>
+            Your Word
+          </div>
+          <h1 className="sr-word">{word}</h1>
+          <p className="sr-word-hint">
+            Get ready — the canvas opens when the timer hits zero.
+          </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

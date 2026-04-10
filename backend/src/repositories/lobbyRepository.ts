@@ -14,7 +14,7 @@ export class LobbyRepository {
   }
 
   getLobbyByInviteCode(inviteCode: string): Lobby | undefined {
-    const lobbyId = this.inviteCodeMap.get(inviteCode);
+    const lobbyId = this.inviteCodeMap.get(inviteCode.toUpperCase());
     return lobbyId ? this.lobbies.get(lobbyId) : undefined;
   }
 
@@ -43,6 +43,6 @@ export class LobbyRepository {
   }
 
   inviteCodeExists(inviteCode: string): boolean {
-    return this.inviteCodeMap.has(inviteCode);
+    return this.inviteCodeMap.has(inviteCode.toUpperCase());
   }
 }

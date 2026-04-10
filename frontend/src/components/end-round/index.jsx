@@ -19,6 +19,7 @@ export default function RoundEnd() {
     roundWinner,
     winningGuess,
     winningCanvas,
+    players,
   } = lobby || {};
 
   const secondsLeft = useCountdown(phaseStartedAt, phaseDuration);
@@ -38,7 +39,6 @@ export default function RoundEnd() {
     const scaleX = DISPLAY_WIDTH / ORIGINAL_WIDTH;
     const scaleY = DISPLAY_HEIGHT / ORIGINAL_HEIGHT;
 
-    // Draw each stroke with proper scaling
     ctx.lineCap = "round";
     winningCanvas.forEach((stroke) => {
       const points = stroke.points;
@@ -60,31 +60,49 @@ export default function RoundEnd() {
     });
   }, [winningCanvas]);
 
-  if (!lobby)
-    return <p className="round-end-error">Unable to load lobby info!</p>;
+  if (!lobby) return <p className="re-error">Unable to load lobby info!</p>;
+
+  const sortedPlayers = players
+    ? [...players].sort((a, b) => b.score - a.score)
+    : [];
 
   return (
-    <div className="round-end">
-      <div className="glass-panel round-end-panel">
-        <div className="countdown">
-          <span className="countdown-number">{secondsLeft}</span>
-          <span className="countdown-text">Next round starts in</span>
-        </div>
+    <div className="re-page">
+      <div className="re-glow re-glow-tl" />
+      <div className="re-glow re-glow-br" />
 
-        <div className="winner-card">
-          <span className="winner-label">Round Winner</span>
-          <h1 className="winner-name">{roundWinner ?? "No winner"}</h1>
+      {/* Countdown bar at top */}
+      <header className="re-top-bar">
+        <div className="re-timer">
+          <span className="material-symbols-outlined re-timer-icon">timer</span>
+          <span className="re-timer-number">{secondsLeft}</span>
+          <span className="re-timer-label">Next round in</span>
+        </div>
+        <span className="re-header-title gradient-title">
+          Round {lobby.roundIndex} / {lobby.totalRounds}
+        </span>
+      </header>
+
+      <main className="re-main">
+        {/* Winner card */}
+        <div className="glass-panel re-winner-card">
+          <div className="re-winner-eyebrow">
+            <span className="material-symbols-outlined">emoji_events</span>
+            Round Winner
+          </div>
+
+          <h1 className="re-winner-name">{roundWinner ?? "No winner"}</h1>
 
           {winningGuess && (
-            <div className="guess-info">
-              <div className="guess-row">
-                <span className="guess-label">Word</span>
-                <span className="guess-value">{lobby.word ?? "—"}</span>
+            <div className="re-stats">
+              <div className="re-stat">
+                <span className="re-stat-label">Word</span>
+                <span className="re-stat-value">{lobby.word ?? "—"}</span>
               </div>
-
-              <div className="guess-row">
-                <span className="guess-label">Confidence</span>
-                <span className="guess-value">
+              <div className="re-stat-divider" />
+              <div className="re-stat">
+                <span className="re-stat-label">AI&nbsp;Confidence</span>
+                <span className="re-stat-value">
                   {Number.isFinite(confidence) ? Math.round(confidence) : "—"}%
                 </span>
               </div>
@@ -92,18 +110,40 @@ export default function RoundEnd() {
           )}
 
           {winningCanvas && winningCanvas.length > 0 && (
-            <div className="winning-canvas-container">
-              <span className="canvas-label">Winning Drawing</span>
+            <div className="re-canvas-wrapper">
+              <p className="re-canvas-label">Winning Drawing</p>
               <canvas
                 ref={canvasRef}
                 width={DISPLAY_WIDTH}
                 height={DISPLAY_HEIGHT}
-                className="winning-canvas"
+                className="re-canvas"
               />
             </div>
           )}
         </div>
-      </div>
+
+        {/* Leaderboard */}
+        {sortedPlayers.length > 0 && (
+          <div className="glass-panel re-leaderboard">
+            <h3 className="re-leaderboard-title">
+              <span className="material-symbols-outlined">leaderboard</span>
+              Scores
+            </h3>
+            <div className="re-leaderboard-list">
+              {sortedPlayers.map((player, idx) => (
+                <div key={player.id} className="re-leaderboard-row">
+                  <span className="re-rank">{idx + 1}</span>
+                  <div className="re-lb-avatar">
+                    {player.name[0].toUpperCase()}
+                  </div>
+                  <span className="re-lb-name">{player.name}</span>
+                  <span className="re-lb-score">{player.score}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

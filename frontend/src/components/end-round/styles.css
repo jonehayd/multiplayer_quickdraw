@@ -1,141 +1,242 @@
-.round-end {
+/* ==========================================
+   End Round — Neon Kineticism
+   ========================================== */
+
+.re-page {
   min-height: 100vh;
+  background-color: var(--surface);
+  color: var(--on-surface);
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2rem;
-  text-align: center;
-  color: var(--text-primary);
-  padding: 2rem;
-  box-sizing: border-box;
+}
+.re-glow { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
+.re-glow-tl {
+  top: -15%; left: -10%; width: 55%; height: 55%;
+  background: radial-gradient(circle, rgba(255, 231, 146, 0.1) 0%, transparent 65%);
+  filter: blur(100px);
+}
+.re-glow-br {
+  bottom: -5%; right: -5%; width: 40%; height: 40%;
+  background: radial-gradient(circle, rgba(151, 169, 255, 0.1) 0%, transparent 65%);
+  filter: blur(100px);
 }
 
-.round-end-panel {
+/* Top bar */
+.re-top-bar {
+  position: relative;
+  z-index: 10;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2rem;
-  padding: 3rem 3.5rem;
+  justify-content: space-between;
+  padding: 1.25rem 2.5rem;
+  background: rgba(12, 10, 37, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--outline-variant);
 }
-
-.countdown {
+.re-timer {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 0.75rem;
 }
-
-.countdown-number {
-  font-size: 4rem;
-  font-weight: 700;
+.re-timer-icon { color: var(--tertiary); font-size: 1.5rem; }
+.re-timer-number {
+  font-family: 'Spline Sans', sans-serif;
+  font-size: 3rem;
+  font-weight: 900;
   line-height: 1;
-  color: var(--accent);
+  color: var(--tertiary);
 }
-
-.countdown-text {
-  font-size: 0.85rem;
-  opacity: 0.7;
-  margin-top: 0.25rem;
-}
-
-.winner-card {
-  background: rgba(255, 255, 255, 0.08);
-  padding: 2.5rem 3rem;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  min-width: 320px;
-}
-
-.winner-label {
-  display: block;
-  font-size: 0.75rem;
+.re-timer-label {
+  font-size: 0.8rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  opacity: 0.7;
-  margin-bottom: 0.5rem;
+  color: var(--on-surface-variant);
+}
+.re-header-title {
+  font-family: 'Spline Sans', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  font-style: italic;
 }
 
-.winner-name {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin: 0 0 1.5rem;
+/* Main */
+.re-main {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  gap: 2rem;
+  padding: 2.5rem;
+  box-sizing: border-box;
+  align-items: flex-start;
+}
+@media (max-width: 800px) {
+  .re-main { flex-direction: column; }
 }
 
-.guess-info {
+/* Winner card */
+.re-winner-card {
+  flex: 1;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+  text-align: center;
+}
+.re-winner-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--tertiary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+.re-winner-eyebrow .material-symbols-outlined { font-size: 1.1rem; }
+.re-winner-name {
+  font-family: 'Spline Sans', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  margin: 0;
+}
+.re-stats {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(35, 33, 72, 0.5);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+.re-stat {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+.re-stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--on-surface-variant);
+}
+.re-stat-value {
+  font-family: 'Spline Sans', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--on-surface);
+}
+.re-stat-divider {
+  width: 1px;
+  height: 3rem;
+  background: var(--outline-variant);
+}
+.re-canvas-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.re-canvas-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--on-surface-variant);
+  margin: 0;
+}
+.re-canvas {
+  border-radius: 0.625rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  max-width: 100%;
+  height: auto;
+}
+
+/* Leaderboard */
+.re-leaderboard {
+  width: 22rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+@media (max-width: 800px) {
+  .re-leaderboard { width: 100%; }
+}
+.re-leaderboard-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Spline Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--on-surface-variant);
+  margin: 0;
+}
+.re-leaderboard-title .material-symbols-outlined { font-size: 1rem; }
+.re-leaderboard-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
-
-.guess-row {
+.re-leaderboard-row {
   display: flex;
-  justify-content: space-between;
-  font-size: 0.95rem;
-  opacity: 0.9;
-}
-
-.guess-label {
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 0.75rem;
-  opacity: 0.7;
-}
-
-.guess-value {
-  font-weight: 600;
-}
-
-.round-end-error {
-  opacity: 0.7;
-}
-
-.winning-canvas-container {
-  margin-top: 2rem;
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.875rem;
+  background: rgba(35, 33, 72, 0.5);
+  border-radius: 0.625rem;
+  padding: 0.875rem;
 }
-
-.canvas-label {
+.re-rank {
+  font-family: 'Spline Sans', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--on-surface-variant);
+  width: 1.5rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+.re-lb-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dim) 100%);
+  color: var(--on-primary);
+  font-weight: 700;
   font-size: 0.9rem;
-  color: var(--text-muted);
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
-
-.winning-canvas {
-  border: 2px solid var(--glass-border);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+.re-lb-name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 0.925rem;
 }
-
-/* Responsive */
-@media (max-width: 600px) {
-  .round-end {
-    padding: 1rem;
-  }
-
-  .round-end-panel {
-    padding: 1.5rem 1rem;
-  }
-
-  .winner-card {
-    min-width: 0;
-    width: 100%;
-    padding: 1.5rem 1rem;
-    box-sizing: border-box;
-  }
-
-  .winner-name {
-    font-size: 1.6rem;
-  }
-
-  .countdown-number {
-    font-size: 3rem;
-  }
-
-  .winning-canvas {
-    max-width: 100%;
-    height: auto;
-  }
+.re-lb-score {
+  font-family: 'Spline Sans', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.re-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--error);
 }

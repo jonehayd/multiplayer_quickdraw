@@ -3,44 +3,99 @@
   margin: 0 auto;
   text-align: center;
 
-  /* Background */
-  --bg-page: #0f172a;
-  --bg-panel: #1e293b;
-  --bg-panel-light: #334155;
+  /* Design System — Electric Neon Kineticism */
+  --primary: #97a9ff;
+  --primary-dim: #3e65ff;
+  --primary-container: #859aff;
+  --on-primary: #002283;
+  --on-primary-container: #001867;
 
-  /* Accent */
-  --accent: #f59e0b;
-  --accent-soft: #fbbf24;
-  --accent-glow: rgba(245, 158, 11, 0.25);
+  --secondary: #ff6b9a;
+  --secondary-dim: #ff6b9a;
+  --secondary-container: #b90a5a;
+  --on-secondary: #47001e;
+  --on-secondary-container: #fff5f6;
 
-  /* Text */
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
+  --tertiary: #ffe792;
+  --tertiary-dim: #efc900;
+  --tertiary-container: #ffd709;
+  --on-tertiary: #655400;
+  --on-tertiary-container: #5b4b00;
 
-  /* Semantic */
-  --danger: #ef4444;
+  --surface: #0c0a25;
+  --surface-dim: #0c0a25;
+  --surface-bright: #2a2751;
+  --surface-container: #181536;
+  --surface-container-low: #110f2d;
+  --surface-container-high: #1d1b3f;
+  --surface-container-highest: #232148;
+
+  --on-surface: #e6e2ff;
+  --on-surface-variant: #aba7ca;
+  --outline: #757292;
+  --outline-variant: #474563;
+
+  --error: #ff6e84;
+  --error-container: #a70138;
+  --on-error: #490013;
+  --on-error-container: #ffb2b9;
+
+  /* Legacy mapping for components still using old vars */
+  --bg-page: #0c0a25;
+  --bg-panel: #1d1b3f;
+  --bg-panel-light: #232148;
+  --accent: #97a9ff;
+  --accent-soft: #3e65ff;
+  --accent-glow: rgba(151, 169, 255, 0.2);
+  --text-primary: #e6e2ff;
+  --text-secondary: #aba7ca;
+  --text-muted: #757292;
+  --danger: #ff6e84;
   --success: #22c55e;
-
-  /* Glass */
-  --glass-bg: rgba(15, 23, 42, 0.82);
-  --glass-border: rgba(255, 255, 255, 0.08);
-
-  /* Radius */
+  --glass-bg: rgba(35, 33, 72, 0.4);
+  --glass-border: rgba(71, 69, 99, 0.2);
   --radius-lg: 16px;
   --radius-md: 12px;
   --radius-sm: 8px;
 }
 
-.card {
-  padding: 2em;
-}
-
 /* Reusable glass panel */
 .glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
+  background: rgba(35, 33, 72, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1.5px solid rgba(71, 69, 99, 0.2);
   border-radius: var(--radius-lg);
+}
+
+/* Gradient title utility */
+.gradient-title {
+  background: linear-gradient(to right, #97a9ff, #3e65ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Primary gradient button */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dim) 100%);
+  color: var(--on-primary-container);
+  border: none;
+  font-family: 'Spline Sans', sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+}
+.btn-primary:hover:not(:disabled) {
+  transform: scale(1.02);
+  border-color: transparent;
+}
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
 }

@@ -93,52 +93,76 @@ export default function Game() {
 
   if (!lobby) return <p>Loading game...</p>;
 
+  const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
+  const ss = String(secondsLeft % 60).padStart(2, "0");
+
   return (
     <div className="game-page">
-      {/* Header: timer, current word, and leave button */}
-      <div className="game-header">
-        <div className="game-timer">
-          <span className="timer-number">{secondsLeft}</span>
-          <span className="timer-label">Time left</span>
+      {/* Header */}
+      <header className="game-header">
+        <span className="game-header-title gradient-title">
+          Quick Draw Battle
+        </span>
+
+        <div className="game-timer-pill">
+          <span className="material-symbols-outlined game-timer-icon">
+            timer
+          </span>
+          <span className="game-timer-value">
+            {mm}:{ss}
+          </span>
         </div>
 
-        <div className="game-word">
-          <span className="word-label">Draw</span>
-          <span className="word-value">{lobby.word}</span>
-        </div>
-
-        <button className="leave-button" onClick={leaveLobby}>
+        <button
+          className="game-leave-btn"
+          onClick={leaveLobby}
+          title="Leave game"
+        >
+          <span className="material-symbols-outlined">logout</span>
           Leave
         </button>
-      </div>
+      </header>
 
-      {/* Three-column layout: scores, canvas, other players */}
+      {/* Body: three columns */}
       <div className="game-body">
-        {/* Left sidebar: scores and AI guesses */}
-        <aside className="game-sidebar left">
-          <div className="sidebar-panel">
-            <h3 className="panel-title">Players</h3>
+        {/* Left: players + AI guesses */}
+        <aside className="game-sidebar">
+          <div className="game-panel">
+            <h3 className="game-panel-title">
+              <span className="material-symbols-outlined">group</span>
+              Players
+            </h3>
             <PlayerScores players={lobby.players} />
           </div>
 
-          <div className="sidebar-panel">
-            <h3 className="panel-title">AI Guesses</h3>
+          <div className="game-panel">
+            <h3 className="game-panel-title">
+              <span className="material-symbols-outlined">psychology</span>
+              AI Guesses
+            </h3>
             <GuessDisplay guesses={top3} />
           </div>
         </aside>
 
-        {/* Center column: the drawing canvas */}
+        {/* Center: word banner + canvas */}
         <div className="game-center">
+          <div className="game-word-banner">
+            <span className="game-word-label">Draw:</span>
+            <span className="game-word-value">{lobby.word}</span>
+          </div>
           <MainPlayerCanvas
             onStroke={handleStroke}
             onCurrentStroke={onCurrentStroke}
           />
         </div>
 
-        {/* Right sidebar: small live canvases for other players */}
-        <aside className="game-sidebar right">
-          <div className="sidebar-panel">
-            <h3 className="panel-title">Other Players</h3>
+        {/* Right: other players' canvases */}
+        <aside className="game-sidebar game-sidebar-right">
+          <div className="game-panel">
+            <h3 className="game-panel-title">
+              <span className="material-symbols-outlined">live_tv</span>
+              Live Feeds
+            </h3>
             <SideViewCanvas />
           </div>
         </aside>

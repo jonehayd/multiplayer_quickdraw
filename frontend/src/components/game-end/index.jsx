@@ -1,4 +1,3 @@
-import { GiDiamondTrophy } from "react-icons/gi";
 import { useLobbyContext } from "../../contexts/LobbyContext.jsx";
 import { useRef, useEffect, useState } from "react";
 import "./styles.css";
@@ -11,17 +10,11 @@ export default function GameEnd() {
   const { winningCanvases, totalRounds } = lobbyInfo.lobby;
   const players = lobbyInfo.lobby.players;
 
-  // Sort players by score descending
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
-
   const podiumPlayers = sortedPlayers.slice(0, 3);
   const otherPlayers = sortedPlayers.slice(3);
-
   const winningPlayerId = podiumPlayers[0]?.id;
 
-  const handleBackToLobby = () => leaveLobby();
-
-  // Builds the full rounds list, inserting placeholders for rounds where nobody guessed correctly
   const allRounds = [];
   for (let i = 0; i < totalRounds; i++) {
     const winningCanvas = winningCanvases.find((c) => c.roundIndex === i);
@@ -39,78 +32,129 @@ export default function GameEnd() {
   }
 
   const [centerIndex, setCenterIndex] = useState(0);
-
   const goLeft = () => setCenterIndex((i) => Math.max(0, i - 1));
   const goRight = () =>
     setCenterIndex((i) => Math.min(allRounds.length - 1, i + 1));
 
-  return (
-    <div className="game-end-page">
-      <div className="glass-panel game-end-panel">
-        <h1 className="game-end-title">Game Over</h1>
+  // Arrange podium: 2nd | 1st | 3rd
+  const podiumOrder = [
+    podiumPlayers[1],
+    podiumPlayers[0],
+    podiumPlayers[2],
+  ].filter(Boolean);
 
-        {/* Podium */}
-        <div className="podium">
-          {podiumPlayers.map((player, index) => {
-            const visualIndex = index === 0 ? 1 : index === 1 ? 0 : 2;
-            return (
-              <div
-                key={player.id}
-                className={`podium-step rank-${index + 1} visual-${visualIndex}`}
-              >
-                <div className="podium-score">{player.score}</div>
-                <div className="podium-name">
-                  {player.name}
-                  {player.id === winningPlayerId && (
-                    <GiDiamondTrophy className="trophy" />
-                  )}
-                </div>
-              </div>
-            );
-          })}
+  return (
+    <div className="ge-page">
+      <div className="ge-glow ge-glow-tl" />
+      <div className="ge-glow ge-glow-br" />
+
+      {/* Header */}
+      <header className="ge-header">
+        <span className="ge-header-title gradient-title">
+          Quick Draw Battle
+        </span>
+        <button className="ge-back-btn" onClick={leaveLobby}>
+          <span className="material-symbols-outlined">arrow_back</span>
+          Back to Lobby
+        </button>
+      </header>
+
+      <main className="ge-main">
+        {/* Results heading */}
+        <div className="ge-hero">
+          <h1 className="ge-hero-title">
+            <span className="ge-hero-emoji">🏆</span>
+            Game Over
+          </h1>
+          <p className="ge-hero-sub">Here&rsquo;s how the battle ended.</p>
         </div>
 
-        {/* Leaderboard (4th place and below) */}
-        {otherPlayers.length > 0 && (
-          <div className="leaderboard">
-            {otherPlayers.map((player, index) => (
-              <div key={player.id} className="leaderboard-row">
-                <span className="lb-rank">{index + 4}.</span>
-                <span className="lb-name">{player.name}</span>
-                <span className="lb-score">{player.score}</span>
-              </div>
-            ))}
+        {/* Podium */}
+        {podiumPlayers.length > 0 && (
+          <div className="glass-panel ge-podium-card">
+            <div className="ge-podium">
+              {podiumOrder.map((player) => {
+                const rank = sortedPlayers.indexOf(player) + 1;
+                const isWinner = player.id === winningPlayerId;
+                return (
+                  <div
+                    key={player.id}
+                    className={`ge-podium-slot rank-${rank}`}
+                  >
+                    {isWinner && (
+                      <span className="ge-crown material-symbols-outlined">
+                        workspace_premium
+                      </span>
+                    )}
+                    <div className="ge-podium-avatar">
+                      {player.name[0].toUpperCase()}
+                    </div>
+                    <div className="ge-podium-name">{player.name}</div>
+                    <div className="ge-podium-score">{player.score}</div>
+                    <div className="ge-podium-block">
+                      <span className="ge-podium-rank-num">{rank}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
-        {/* Rounds carousel */}
-        {allRounds.length > 0 && (
-          <div className="gallery-section">
-            <h2 className="gallery-title">All Rounds</h2>
+        {/* Full leaderboard */}
+        <div className="glass-panel ge-leaderboard">
+          <h3 className="ge-section-title">
+            <span className="material-symbols-outlined">leaderboard</span>
+            Final Standings
+          </h3>
+          <div className="ge-lb-list">
+            {sortedPlayers.map((player, idx) => (
+              <div
+                key={player.id}
+                className={`ge-lb-row${idx === 0 ? " first" : ""}`}
+              >
+                <span className="ge-lb-rank">#{idx + 1}</span>
+                <div className="ge-lb-avatar">
+                  {player.name[0].toUpperCase()}
+                </div>
+                <span className="ge-lb-name">{player.name}</span>
+                <span className="ge-lb-score">{player.score}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
-            <div className="gallery-wrapper">
+        {/* Gallery carousel */}
+        {allRounds.length > 0 && (
+          <div className="glass-panel ge-gallery">
+            <h3 className="ge-section-title">
+              <span className="material-symbols-outlined">collections</span>
+              Round Gallery
+            </h3>
+
+            <div className="ge-gallery-track-wrapper">
               <button
-                className="gallery-arrow"
+                className="ge-arrow-btn"
                 onClick={goLeft}
                 disabled={centerIndex === 0}
                 aria-label="Previous round"
               >
-                &#8249;
+                <span className="material-symbols-outlined">chevron_left</span>
               </button>
 
-              <div className="gallery-track">
+              <div className="ge-gallery-track">
                 {[centerIndex - 1, centerIndex, centerIndex + 1].map((i) => {
                   const item = allRounds[i];
                   const isCenter = i === centerIndex;
                   return (
                     <div
                       key={i}
-                      className={`canvas-item${isCenter ? " active" : ""}`}
+                      className={`ge-gallery-item${isCenter ? " active" : ""}`}
                     >
                       {item ? (
                         <CanvasPreview canvasData={item} />
                       ) : (
-                        <div className="canvas-card placeholder" />
+                        <div className="ge-canvas-placeholder" />
                       )}
                     </div>
                   );
@@ -118,29 +162,23 @@ export default function GameEnd() {
               </div>
 
               <button
-                className="gallery-arrow"
+                className="ge-arrow-btn"
                 onClick={goRight}
                 disabled={centerIndex === allRounds.length - 1}
                 aria-label="Next round"
               >
-                &#8250;
+                <span className="material-symbols-outlined">chevron_right</span>
               </button>
             </div>
           </div>
         )}
-
-        <button className="back-to-lobby-btn" onClick={handleBackToLobby}>
-          Back to Lobby
-        </button>
-      </div>
+      </main>
     </div>
   );
 }
 
-// Component to render each canvas
 function CanvasPreview({ canvasData }) {
   const canvasRef = useRef(null);
-
   const ORIGINAL_WIDTH = 800;
   const ORIGINAL_HEIGHT = 500;
   const DISPLAY_WIDTH = 400;
@@ -148,46 +186,42 @@ function CanvasPreview({ canvasData }) {
 
   useEffect(() => {
     if (!canvasRef.current) return;
-
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     if (!canvasData || !canvasData.canvas) return;
-
     const scaleX = DISPLAY_WIDTH / ORIGINAL_WIDTH;
     const scaleY = DISPLAY_HEIGHT / ORIGINAL_HEIGHT;
-
     ctx.lineCap = "round";
     canvasData.canvas.forEach((stroke) => {
       const points = stroke.points;
       if (!points || points.length === 0) return;
-
       ctx.beginPath();
       ctx.strokeStyle = stroke.color;
       ctx.lineWidth = stroke.size * scaleX;
-
       points.forEach((p, i) => {
         const x = p.x * scaleX;
         const y = p.y * scaleY;
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
-
       ctx.stroke();
       ctx.closePath();
     });
   }, [canvasData]);
 
   return (
-    <div className={`canvas-card ${!canvasData.playerId ? "no-winner" : ""}`}>
+    <div
+      className={`ge-canvas-card${!canvasData.playerId ? " no-winner" : ""}`}
+    >
       <canvas ref={canvasRef} width={400} height={250} />
-      <div className="canvas-info">
-        <span className="canvas-round">Round {canvasData.roundIndex + 1}</span>
-        <span className="canvas-word">{canvasData.word}</span>
-        <span className="canvas-player">{canvasData.playerName}</span>
+      <div className="ge-canvas-info">
+        <span className="ge-canvas-round">
+          Round {canvasData.roundIndex + 1}
+        </span>
+        <span className="ge-canvas-word">{canvasData.word}</span>
+        <span className="ge-canvas-player">{canvasData.playerName}</span>
       </div>
     </div>
   );

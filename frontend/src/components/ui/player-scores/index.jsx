@@ -5,16 +5,14 @@ export default function PlayerScores({ players }) {
   return (
     <div className="player-scores-container">
       {players.map((player) => (
-        <div key={player.id} className="player-score">
-          {/* Circle with initial */}
-          <div className="player-initial">
-            {player.name.charAt(0).toUpperCase()}
-          </div>
-          {/* Name and score */}
-          <div className="player-info">
+        <div key={player.id} className="player-score-item">
+          <div className="player-score-left">
+            <div className="player-initial">
+              {player.name.charAt(0).toUpperCase()}
+            </div>
             <span className="player-name">{player.name}</span>
-            <span className="player-score-value">{player.score}</span>
           </div>
+          <span className="player-score-value">{player.score}</span>
         </div>
       ))}
     </div>
